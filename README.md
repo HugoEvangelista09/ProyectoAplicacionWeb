@@ -10,5 +10,4 @@ Sistema desarrollado con:
 - CRUD
 - API REST
 
-## Autor
-Hugo Evangelista
+
