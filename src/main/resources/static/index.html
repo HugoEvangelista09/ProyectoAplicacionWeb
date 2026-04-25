@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ingreso | Asociacion de Comerciantes</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body class="login-body">
+    <main class="login-shell">
+        <section class="login-panel login-copy">
+            <p class="eyebrow">Sistema interno</p>
+            <h1>Asociación de Comerciantes APROMEC</h1>
+            <p class="subtitle">Ingresa al panel administrativo para gestionar socios, puestos, cobros, pagos y reportes desde una interfaz web mas clara.</p>
+            <div class="login-tips">
+                <div class="tip-card">
+                    <strong>Usuario demo</strong>
+                    <span>admin</span>
+                </div>
+                <div class="tip-card">
+                    <strong>Clave demo</strong>
+                    <span>admin123</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="login-panel">
+            <form id="loginForm" class="login-form">
+                <p class="eyebrow">Acceso</p>
+                <h2>Iniciar sesion</h2>
+                <label>
+                    Usuario
+                    <input id="loginUsername" required type="text" placeholder="admin">
+                </label>
+                <label>
+                    Contrasena
+                    <input id="loginPassword" required type="password" placeholder="admin123">
+                </label>
+                <button type="submit">Entrar al sistema</button>
+                <p id="loginMessage" class="inline-message hidden"></p>
+            </form>
+        </section>
+    </main>
+
+    <script src="/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Principal | Asociacion de Comerciantes</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body data-page="dashboard">
+    <div class="app-shell">
+        <aside class="app-sidebar">
+            <div>
+                <p class="eyebrow"></p>
+                <h2>Asociación APROMEC</h2>
+            </div>
+            <nav class="nav-links">
+                <a class="active" href="/dashboard.html">Resumen</a>
+                <a href="/socios.html">Socios</a>
+                <a href="/puestos.html">Puestos</a>
+                <a href="/motivos.html">Motivos</a>
+                <a href="/deudas.html">Deudas</a>
+                <a href="/pagos.html">Pagos</a>
+                <a href="/reportes.html">Reportes</a>
+            </nav>
+            <button id="logoutBtn" class="secondary-btn" type="button">Cerrar sesión</button>
+        </aside>
+
+        <main class="app-main">
+            <header class="topbar">
+                <div>
+                    <p class="eyebrow">Vista general</p>
+                    <h1>Panel principal</h1>
+                </div>
+                <button id="refreshDashboardBtn" type="button">Actualizar resumen</button>
+            </header>
+
+            <div id="messageBox" class="message hidden"></div>
+
+            <section class="hero-banner">
+                <div>
+                    <p class="eyebrow">Hoy</p>
+                    <h2>Control rapido del sistema</h2>
+                    <p>Revisa el estado general y entra a cada modulo con un solo clic.</p>
+                </div>
+                <div class="hero-actions">
+                    <a class="button-link" href="/socios.html">Registrar socio</a>
+                    <a class="button-link alt" href="/pagos.html">Registrar pago</a>
+                </div>
+            </section>
+
+            <section class="stats-grid">
+                <article class="stat-card">
+                    <span>Socios</span>
+                    <strong id="statSocios">0</strong>
+                </article>
+                <article class="stat-card">
+                    <span>Puestos</span>
+                    <strong id="statPuestos">0</strong>
+                </article>
+                <article class="stat-card">
+                    <span>Motivos</span>
+                    <strong id="statMotivos">0</strong>
+                </article>
+                <article class="stat-card">
+                    <span>Deudas pendientes</span>
+                    <strong id="statDeudasPendientes">0</strong>
+                </article>
+            </section>
+
+            <section class="content-grid">
+                <article class="card">
+                    <div class="section-title">
+                        <div>
+                            <p class="eyebrow">Actividad</p>
+                            <h2>Ultimos pagos</h2>
+                        </div>
+                        <a class="text-link" href="/pagos.html">Ver modulo</a>
+                    </div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Socio</th>
+                                    <th>Fecha</th>
+                                    <th>Monto</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dashboardPagosTable"></tbody>
+                        </table>
+                    </div>
+                </article>
+
+                <article class="card">
+                    <div class="section-title">
+                        <div>
+                            <p class="eyebrow">Pendientes</p>
+                            <h2>Deudas recientes</h2>
+                        </div>
+                        <a class="text-link" href="/deudas.html">Ver modulo</a>
+                    </div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Socio</th>
+                                    <th>Estado</th>
+                                    <th>Total</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dashboardDeudasTable"></tbody>
+                        </table>
+                    </div>
+                </article>
+            </section>
+        </main>
+    </div>
+
+    <script src="/app.js"></script>
+</body>
+</html>

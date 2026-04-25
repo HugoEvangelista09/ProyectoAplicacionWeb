@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reportes | Asociacion de Comerciantes</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body data-page="reportes">
+    <div class="app-shell">
+        <aside class="app-sidebar">
+            <div>
+                <p class="eyebrow">Sistema</p>
+                <h2>Asociación APROMEC</h2>
+            </div>
+            <nav class="nav-links">
+                <a href="/dashboard.html">Resumen</a>
+                <a href="/socios.html">Socios</a>
+                <a href="/puestos.html">Puestos</a>
+                <a href="/motivos.html">Motivos</a>
+                <a href="/deudas.html">Deudas</a>
+                <a href="/pagos.html">Pagos</a>
+                <a class="active" href="/reportes.html">Reportes</a>
+            </nav>
+            <button id="logoutBtn" class="secondary-btn" type="button">Cerrar sesión</button>
+        </aside>
+
+        <main class="app-main">
+            <header class="topbar">
+                <div>
+                    <p class="eyebrow">Modulo</p>
+                    <h1>Reportes</h1>
+                </div>
+            </header>
+
+            <div id="messageBox" class="message hidden"></div>
+
+            <section class="card">
+                <div class="reports-grid">
+                    <form id="reporteCajaForm" class="mini-card">
+                        <h3>Caja diaria</h3>
+                        <label>
+                            Fecha
+                            <input id="reporteCajaFecha" type="date">
+                        </label>
+                        <button type="submit">Consultar</button>
+                    </form>
+
+                    <form id="reporteRangoForm" class="mini-card">
+                        <h3>Caja por rango</h3>
+                        <label>
+                            Desde
+                            <input id="reporteDesde" required type="date">
+                        </label>
+                        <label>
+                            Hasta
+                            <input id="reporteHasta" required type="date">
+                        </label>
+                        <button type="submit">Consultar</button>
+                    </form>
+
+                    <form id="reporteDeudaForm" class="mini-card">
+                        <h3>Deuda por socio</h3>
+                        <p>Consulta el consolidado actual.</p>
+                        <button type="submit">Consultar</button>
+                    </form>
+                </div>
+
+                <pre id="reportesOutput" class="report-output">Aqui apareceran los resultados de reportes.</pre>
+            </section>
+        </main>
+    </div>
+
+    <script src="/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pagos | Asociacion de Comerciantes</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body data-page="pagos">
+    <div class="app-shell">
+        <aside class="app-sidebar">
+            <div>
+                <p class="eyebrow">Sistema</p>
+                <h2>Asociación APROMEC</h2>
+            </div>
+            <nav class="nav-links">
+                <a href="/dashboard.html">Resumen</a>
+                <a href="/socios.html">Socios</a>
+                <a href="/puestos.html">Puestos</a>
+                <a href="/motivos.html">Motivos</a>
+                <a href="/deudas.html">Deudas</a>
+                <a class="active" href="/pagos.html">Pagos</a>
+                <a href="/reportes.html">Reportes</a>
+            </nav>
+            <button id="logoutBtn" class="secondary-btn" type="button">Cerrar sesión</button>
+        </aside>
+
+        <main class="app-main">
+            <header class="topbar">
+                <div>
+                    <p class="eyebrow">Modulo</p>
+                    <h1>Pagos</h1>
+                </div>
+                <button id="loadPagosBtn" type="button">Actualizar lista</button>
+            </header>
+
+            <div id="messageBox" class="message hidden"></div>
+
+            <section class="card">
+                <form id="pagoForm" class="form-grid">
+                    <label>
+                        Socio
+                        <select id="pagoSocioId" required></select>
+                    </label>
+                    <label class="full-width">
+                        Observacion
+                        <input id="pagoObservacion" type="text">
+                    </label>
+                    <fieldset class="full-width">
+                        <legend>Items pendientes del socio</legend>
+                        <div id="pagoItemsContainer" class="checkbox-list"></div>
+                    </fieldset>
+                    <div class="actions">
+                        <button type="submit">Registrar pago</button>
+                    </div>
+                </form>
+            </section>
+
+            <section class="card">
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Socio</th>
+                                <th>Fecha</th>
+                                <th>Monto total</th>
+                                <th>Observacion</th>
+                                <th>Items pagados</th>
+                            </tr>
+                        </thead>
+                        <tbody id="pagosTable"></tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="/app.js"></script>
+</body>
+</html>
