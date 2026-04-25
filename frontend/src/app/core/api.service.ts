@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { Deuda, MotivoCobro, Pago, Puesto, Socio } from '../shared/models';
+import { Deuda, MotivoCobro, Pago, Puesto, Socio, Usuario, UsuarioForm } from '../shared/models';
 
 @Injectable({ providedIn: 'root' })
 export class ApiService {
@@ -63,6 +63,20 @@ export class ApiService {
 
   crearPago(payload: unknown): Observable<Pago> {
     return this.http.post<Pago>('/api/pagos', payload);
+  }
+
+  listarUsuarios(): Observable<Usuario[]> {
+    return this.http.get<Usuario[]>('/api/usuarios');
+  }
+
+  guardarUsuario(payload: Partial<UsuarioForm>, id?: number | null): Observable<Usuario> {
+    return id
+      ? this.http.put<Usuario>(`/api/usuarios/${id}`, payload)
+      : this.http.post<Usuario>('/api/usuarios', payload);
+  }
+
+  desactivarUsuario(id: number): Observable<void> {
+    return this.http.delete<void>(`/api/usuarios/${id}`);
   }
 
   reporteCaja(fecha: string): Observable<unknown> {

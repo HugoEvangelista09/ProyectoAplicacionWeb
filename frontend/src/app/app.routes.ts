@@ -9,6 +9,7 @@ import { PagosPageComponent } from './pages/pagos.page';
 import { PuestosPageComponent } from './pages/puestos.page';
 import { ReportesPageComponent } from './pages/reportes.page';
 import { SociosPageComponent } from './pages/socios.page';
+import { UsuariosPageComponent } from './pages/usuarios.page';
 
 export const routes: Routes = [
   {
@@ -28,7 +29,8 @@ export const routes: Routes = [
       { path: 'motivos', component: MotivosPageComponent },
       { path: 'deudas', component: DeudasPageComponent },
       { path: 'pagos', component: PagosPageComponent },
-      { path: 'reportes', component: ReportesPageComponent }
+      { path: 'reportes', component: ReportesPageComponent },
+      { path: 'usuarios', component: UsuariosPageComponent }
     ]
   },
   { path: '**', redirectTo: 'dashboard' }

@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Socios | Asociacion de Comerciantes</title>
+    <title>Usuarios | Asociacion de Comerciantes</title>
     <link rel="stylesheet" href="/styles.css">
 </head>
-<body data-page="socios">
+<body data-page="usuarios">
     <div class="app-shell">
         <aside class="app-sidebar">
             <div>
@@ -15,13 +15,13 @@
             </div>
             <nav class="nav-links">
                 <a href="/dashboard.html">Resumen</a>
-                <a class="active" href="/socios.html">Socios</a>
+                <a href="/socios.html">Socios</a>
                 <a href="/puestos.html">Puestos</a>
                 <a href="/motivos.html">Motivos</a>
                 <a href="/deudas.html">Deudas</a>
                 <a href="/pagos.html">Pagos</a>
                 <a href="/reportes.html">Reportes</a>
-                <a href="/usuarios.html">Usuarios</a>
+                <a class="active" href="/usuarios.html">Usuarios</a>
             </nav>
             <button id="logoutBtn" class="secondary-btn" type="button">Cerrar sesión</button>
         </aside>
@@ -30,46 +30,64 @@
             <header class="topbar">
                 <div>
                     <p class="eyebrow">Modulo</p>
-                    <h1>Socios</h1>
+                    <h1>Usuarios</h1>
                 </div>
-                <button id="loadSociosBtn" type="button">Actualizar lista</button>
+                <button id="loadUsuariosBtn" type="button">Actualizar lista</button>
             </header>
-
-            <div id="messageBox" class="message hidden"></div>
 
             <section class="card">
                 <div class="section-title">
                     <div>
                         <p class="eyebrow">Formulario</p>
-                        <h2>Registrar o editar socio</h2>
+                        <h2>Registrar o editar usuario</h2>
                     </div>
                 </div>
 
-                <form id="socioForm" class="form-grid">
-                    <input type="hidden" id="socioId">
+                <form id="usuarioForm" class="form-grid">
+                    <input type="hidden" id="usuarioId">
                     <label>
-                        Nombre
-                        <input id="socioNombre" required type="text">
+                        Username
+                        <input id="usuarioUsername" required type="text">
                     </label>
                     <label>
-                        Apellido
-                        <input id="socioApellido" required type="text">
+                        Contrasena
+                        <input id="usuarioPassword" type="password" placeholder="Dejar en blanco para no cambiar">
                     </label>
                     <label>
-                        DNI
-                        <input id="socioDni" required type="text">
+                        Nombre Completo
+                        <input id="usuarioNombreCompleto" required type="text">
                     </label>
                     <label>
-                        Telefono
-                        <input id="socioTelefono" type="text">
+                        DNI (8 digitos)
+                        <input id="usuarioDni" required type="text" maxlength="8">
+                    </label>
+                    <label>
+                        RUC (11 digitos)
+                        <input id="usuarioRuc" required type="text" maxlength="11">
                     </label>
                     <label>
                         Email
-                        <input id="socioEmail" type="email">
+                        <input id="usuarioEmail" type="email">
+                    </label>
+                    <label>
+                        Telefono
+                        <input id="usuarioTelefono" type="text">
+                    </label>
+                    <label>
+                        Direccion
+                        <input id="usuarioDireccion" type="text">
+                    </label>
+                    <label>
+                        Rol
+                        <select id="usuarioRol" required>
+                            <option value="" disabled selected>Seleccionar rol</option>
+                            <option value="1">Administrador</option>
+                            <option value="2">Operador</option>
+                        </select>
                     </label>
                     <div class="actions">
-                        <button type="submit">Guardar socio</button>
-                        <button id="resetSocioBtn" class="secondary-btn" type="button">Limpiar</button>
+                        <button type="submit">Guardar usuario</button>
+                        <button id="resetUsuarioBtn" class="secondary-btn" type="button">Limpiar</button>
                     </div>
                 </form>
             </section>
@@ -78,7 +96,7 @@
                 <div class="section-title">
                     <div>
                         <p class="eyebrow">Listado</p>
-                        <h2>Socios registrados</h2>
+                        <h2>Usuarios registrados</h2>
                     </div>
                 </div>
                 <div class="table-wrap">
@@ -86,15 +104,18 @@
                         <thead>
                             <tr>
                                 <th>ID</th>
-                                <th>Nombre</th>
+                                <th>Username</th>
+                                <th>Nombre Completo</th>
                                 <th>DNI</th>
-                                <th>Telefono</th>
+                                <th>RUC</th>
                                 <th>Email</th>
+                                <th>Telefono</th>
+                                <th>Rol</th>
                                 <th>Estado</th>
                                 <th>Acciones</th>
                             </tr>
                         </thead>
-                        <tbody id="sociosTable"></tbody>
+                        <tbody id="usuariosTable"></tbody>
                     </table>
                 </div>
             </section>

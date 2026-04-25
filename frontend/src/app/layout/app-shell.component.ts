@@ -24,6 +24,7 @@ import { AuthService } from '../core/auth.service';
           <a routerLink="/deudas" routerLinkActive="active">Deudas</a>
           <a routerLink="/pagos" routerLinkActive="active">Pagos</a>
           <a routerLink="/reportes" routerLinkActive="active">Reportes</a>
+          <a routerLink="/usuarios" routerLinkActive="active">Usuarios</a>
         </nav>
 
         <button type="button" class="secondary-btn" (click)="logout()">Cerrar sesion</button>

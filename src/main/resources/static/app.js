@@ -10,7 +10,8 @@ const state = {
     puestos: [],
     motivos: [],
     deudas: [],
-    pagos: []
+    pagos: [],
+    usuarios: []
 };
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -107,6 +108,10 @@ async function initCurrentPage() {
             wireReportesEvents();
             setToday();
             break;
+        case "usuarios":
+            wireUsuariosEvents();
+            await loadUsuarios();
+            break;
         default:
             break;
     }
@@ -153,6 +158,12 @@ function wireReportesEvents() {
     document.getElementById("reporteDeudaForm")?.addEventListener("submit", loadReporteDeudaSocio);
 }
 
+function wireUsuariosEvents() {
+    document.getElementById("loadUsuariosBtn")?.addEventListener("click", () => loadUsuarios().catch(handlePageError));
+    document.getElementById("usuarioForm")?.addEventListener("submit", submitUsuarioForm);
+    document.getElementById("resetUsuarioBtn")?.addEventListener("click", resetUsuarioForm);
+}
+
 async function apiFetch(url, options = {}) {
     const response = await fetch(url, {
         headers: {
@@ -181,19 +192,36 @@ function handlePageError(error) {
     showMessage(error.message, "error");
 }
 
-function getMessageBox() {
-    return document.getElementById("messageBox");
+function showMessage(message, type = "success") {
+    if (type === "success") {
+        Swal.fire({
+            icon: "success",
+            title: "Operacion exitosa",
+            text: message,
+            timer: 2000,
+            timerProgressBar: true,
+            showConfirmButton: false
+        });
+    } else {
+        Swal.fire({
+            icon: "error",
+            title: "Ocurrio un error",
+            text: message
+        });
+    }
 }
 
-function showMessage(message, type = "success") {
-    const box = getMessageBox();
-    if (!box) return;
-
-    box.textContent = message;
-    box.className = `message ${type}`;
-    setTimeout(() => {
-        box.className = "message hidden";
-    }, 3000);
+async function confirmAction(title, text) {
+    const result = await Swal.fire({
+        title,
+        text,
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Si, continuar",
+        cancelButtonText: "Cancelar",
+        confirmButtonColor: "#d33"
+    });
+    return result.isConfirmed;
 }
 
 function logout() {
@@ -229,6 +257,10 @@ function socioFullName(socio) {
     return `${socio.nombre} ${socio.apellido}`.trim();
 }
 
+function rolLabel(rol) {
+    return rol === 1 ? "Administrador" : "Operador";
+}
+
 function renderSelect(selectId, items, formatter, includeEmptyOption = false, emptyLabel = "Seleccione") {
     const select = document.getElementById(selectId);
     if (!select) return;
@@ -247,6 +279,8 @@ function renderSelect(selectId, items, formatter, includeEmptyOption = false, em
         select.value = currentValue;
     }
 }
+
+// ── Dashboard ────────────────────────────────────────────────────────────────
 
 async function loadDashboard() {
     await Promise.all([
@@ -300,6 +334,8 @@ function renderDashboardDeudas() {
         `).join("")
         : "<tr><td colspan='4' class='muted'>No hay deudas registradas.</td></tr>";
 }
+
+// ── Socios ───────────────────────────────────────────────────────────────────
 
 async function loadSocios(notify = true) {
     state.socios = await apiFetch("/api/socios");
@@ -369,7 +405,8 @@ function editSocio(id) {
 }
 
 async function deleteSocio(id) {
-    if (!confirm("Se desactivara este socio. Deseas continuar?")) return;
+    const confirmed = await confirmAction("Desactivar socio", "Esta accion marcara el socio como inactivo.");
+    if (!confirmed) return;
     try {
         await apiFetch(`/api/socios/${id}`, { method: "DELETE" });
         await loadSocios(false);
@@ -383,6 +420,8 @@ function resetSocioForm() {
     document.getElementById("socioForm")?.reset();
     setValueIfExists("socioId", "");
 }
+
+// ── Puestos ──────────────────────────────────────────────────────────────────
 
 async function loadPuestos(notify = true) {
     state.puestos = await apiFetch("/api/puestos");
@@ -445,7 +484,8 @@ function editPuesto(id) {
 }
 
 async function deletePuesto(id) {
-    if (!confirm("Se desactivara este puesto. Deseas continuar?")) return;
+    const confirmed = await confirmAction("Desactivar puesto", "Esta accion marcara el puesto como inactivo.");
+    if (!confirmed) return;
     try {
         await apiFetch(`/api/puestos/${id}`, { method: "DELETE" });
         await loadPuestos(false);
@@ -459,6 +499,8 @@ function resetPuestoForm() {
     document.getElementById("puestoForm")?.reset();
     setValueIfExists("puestoId", "");
 }
+
+// ── Motivos ──────────────────────────────────────────────────────────────────
 
 async function loadMotivos(notify = true) {
     state.motivos = await apiFetch("/api/motivos-cobro?soloActivos=false");
@@ -518,7 +560,8 @@ function editMotivo(id) {
 }
 
 async function deleteMotivo(id) {
-    if (!confirm("Se desactivara este motivo. Deseas continuar?")) return;
+    const confirmed = await confirmAction("Desactivar motivo", "Esta accion marcara el motivo como inactivo.");
+    if (!confirmed) return;
     try {
         await apiFetch(`/api/motivos-cobro/${id}`, { method: "DELETE" });
         await loadMotivos(false);
@@ -532,6 +575,8 @@ function resetMotivoForm() {
     document.getElementById("motivoForm")?.reset();
     setValueIfExists("motivoId", "");
 }
+
+// ── Deudas ───────────────────────────────────────────────────────────────────
 
 async function loadDeudas(notify = true) {
     state.deudas = await apiFetch("/api/deudas");
@@ -597,6 +642,8 @@ async function submitDeudaForm(event) {
         handlePageError(error);
     }
 }
+
+// ── Pagos ────────────────────────────────────────────────────────────────────
 
 async function loadPagos(notify = true) {
     state.pagos = await apiFetch("/api/pagos");
@@ -682,6 +729,8 @@ async function submitPagoForm(event) {
     }
 }
 
+// ── Reportes ─────────────────────────────────────────────────────────────────
+
 async function loadReporteCaja(event) {
     event.preventDefault();
     const fecha = document.getElementById("reporteCajaFecha").value;
@@ -712,9 +761,108 @@ async function renderReport(url) {
     }
 }
 
+// ── Usuarios ─────────────────────────────────────────────────────────────────
+
+async function loadUsuarios(notify = true) {
+    state.usuarios = await apiFetch("/api/usuarios");
+    renderUsuarios();
+    if (notify) showMessage("Usuarios cargados.", "success");
+}
+
+function renderUsuarios() {
+    const tbody = document.getElementById("usuariosTable");
+    if (!tbody) return;
+
+    tbody.innerHTML = state.usuarios.map((usuario) => `
+        <tr>
+            <td>${usuario.id}</td>
+            <td>${usuario.username}</td>
+            <td>${usuario.nombreCompleto}</td>
+            <td>${usuario.dni}</td>
+            <td>${usuario.ruc}</td>
+            <td>${usuario.email || "-"}</td>
+            <td>${usuario.telefono || "-"}</td>
+            <td>${rolLabel(usuario.rol)}</td>
+            <td>${usuario.activo ? "Activo" : "Inactivo"}</td>
+            <td>
+                <div class="table-actions">
+                    <button type="button" onclick="editUsuario(${usuario.id})">Editar</button>
+                    <button type="button" class="danger-btn" onclick="deleteUsuario(${usuario.id})">Desactivar</button>
+                </div>
+            </td>
+        </tr>
+    `).join("");
+}
+
+async function submitUsuarioForm(event) {
+    event.preventDefault();
+    const id = document.getElementById("usuarioId").value;
+    const password = document.getElementById("usuarioPassword").value;
+    const payload = {
+        username: document.getElementById("usuarioUsername").value,
+        nombreCompleto: document.getElementById("usuarioNombreCompleto").value,
+        dni: document.getElementById("usuarioDni").value,
+        ruc: document.getElementById("usuarioRuc").value,
+        email: document.getElementById("usuarioEmail").value || null,
+        telefono: document.getElementById("usuarioTelefono").value || null,
+        direccion: document.getElementById("usuarioDireccion").value || null,
+        rol: Number(document.getElementById("usuarioRol").value)
+    };
+    if (password) payload.password = password;
+
+    try {
+        await apiFetch(id ? `/api/usuarios/${id}` : "/api/usuarios", {
+            method: id ? "PUT" : "POST",
+            body: JSON.stringify(payload)
+        });
+        resetUsuarioForm();
+        await loadUsuarios(false);
+        showMessage(id ? "Usuario actualizado." : "Usuario registrado.", "success");
+    } catch (error) {
+        handlePageError(error);
+    }
+}
+
+function editUsuario(id) {
+    const usuario = state.usuarios.find((item) => item.id === id);
+    if (!usuario) return;
+
+    setValueIfExists("usuarioId", usuario.id);
+    setValueIfExists("usuarioUsername", usuario.username);
+    setValueIfExists("usuarioPassword", "");
+    setValueIfExists("usuarioNombreCompleto", usuario.nombreCompleto);
+    setValueIfExists("usuarioDni", usuario.dni);
+    setValueIfExists("usuarioRuc", usuario.ruc);
+    setValueIfExists("usuarioEmail", usuario.email || "");
+    setValueIfExists("usuarioTelefono", usuario.telefono || "");
+    setValueIfExists("usuarioDireccion", usuario.direccion || "");
+    setValueIfExists("usuarioRol", usuario.rol);
+}
+
+async function deleteUsuario(id) {
+    const confirmed = await confirmAction("Desactivar usuario", "Esta accion marcara el usuario como inactivo.");
+    if (!confirmed) return;
+    try {
+        await apiFetch(`/api/usuarios/${id}`, { method: "DELETE" });
+        await loadUsuarios(false);
+        showMessage("Usuario desactivado.", "success");
+    } catch (error) {
+        handlePageError(error);
+    }
+}
+
+function resetUsuarioForm() {
+    document.getElementById("usuarioForm")?.reset();
+    setValueIfExists("usuarioId", "");
+}
+
+// ── Exports globales para onclick inline ─────────────────────────────────────
+
 window.editSocio = editSocio;
 window.deleteSocio = deleteSocio;
 window.editPuesto = editPuesto;
 window.deletePuesto = deletePuesto;
 window.editMotivo = editMotivo;
 window.deleteMotivo = deleteMotivo;
+window.editUsuario = editUsuario;
+window.deleteUsuario = deleteUsuario;

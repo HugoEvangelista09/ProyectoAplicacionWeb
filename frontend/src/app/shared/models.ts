@@ -54,3 +54,32 @@ export interface Pago {
   observacion?: string;
   itemsPagados: DeudaItem[];
 }
+
+export interface Usuario {
+  id: number;
+  username: string;
+  nombreCompleto: string;
+  dni: string;
+  ruc: string;
+  email?: string;
+  telefono?: string;
+  direccion?: string;
+  activo: boolean;
+  flg: boolean;
+  rol: number;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface UsuarioForm {
+  id?: number;
+  username: string;
+  password: string;
+  nombreCompleto: string;
+  dni: string;
+  ruc: string;
+  email: string;
+  telefono: string;
+  direccion: string;
+  rol: number | null;
+}
