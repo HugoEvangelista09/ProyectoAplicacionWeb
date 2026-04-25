@@ -34,45 +34,78 @@
                 </div>
             </header>
 
-            <div id="messageBox" class="message hidden"></div>
-
+            <!-- Caja diaria -->
             <section class="card">
-                <div class="reports-grid">
-                    <form id="reporteCajaForm" class="mini-card">
-                        <h3>Caja diaria</h3>
-                        <label>
-                            Fecha
-                            <input id="reporteCajaFecha" type="date">
-                        </label>
-                        <button type="submit">Consultar</button>
-                    </form>
-
-                    <form id="reporteRangoForm" class="mini-card">
-                        <h3>Caja por rango</h3>
-                        <label>
-                            Desde
-                            <input id="reporteDesde" required type="date">
-                        </label>
-                        <label>
-                            Hasta
-                            <input id="reporteHasta" required type="date">
-                        </label>
-                        <button type="submit">Consultar</button>
-                    </form>
-
-                    <form id="reporteDeudaForm" class="mini-card">
-                        <h3>Deuda por socio</h3>
-                        <p>Consulta el consolidado actual.</p>
-                        <button type="submit">Consultar</button>
-                    </form>
+                <div class="section-title">
+                    <div>
+                        <p class="eyebrow">Reporte 1</p>
+                        <h2>Caja diaria</h2>
+                    </div>
                 </div>
+                <form id="reporteCajaForm" class="form-grid" novalidate>
+                    <label>
+                        Fecha
+                        <input id="reporteCajaFecha" type="date">
+                    </label>
+                    <div class="actions">
+                        <button type="submit">Consultar</button>
+                        <button type="button" id="btnPdfCaja" class="secondary-btn" disabled>Descargar PDF</button>
+                        <button type="button" id="btnCsvCaja" class="secondary-btn" disabled>Descargar CSV</button>
+                    </div>
+                </form>
+                <div id="reportesCajaOutput" class="hidden" style="margin-top:1.25rem;"></div>
+            </section>
 
-                <pre id="reportesOutput" class="report-output">Aqui apareceran los resultados de reportes.</pre>
+            <!-- Caja por rango -->
+            <section class="card">
+                <div class="section-title">
+                    <div>
+                        <p class="eyebrow">Reporte 2</p>
+                        <h2>Caja por rango</h2>
+                    </div>
+                </div>
+                <form id="reporteRangoForm" class="form-grid" novalidate>
+                    <label>
+                        Desde
+                        <input id="reporteDesde" type="date">
+                    </label>
+                    <label>
+                        Hasta
+                        <input id="reporteHasta" type="date">
+                    </label>
+                    <div class="actions">
+                        <button type="submit">Consultar</button>
+                        <button type="button" id="btnPdfRango" class="secondary-btn" disabled>Descargar PDF</button>
+                        <button type="button" id="btnCsvRango" class="secondary-btn" disabled>Descargar CSV</button>
+                    </div>
+                </form>
+                <div id="reportesRangoOutput" class="hidden" style="margin-top:1.25rem;"></div>
+            </section>
+
+            <!-- Deuda por socio -->
+            <section class="card">
+                <div class="section-title">
+                    <div>
+                        <p class="eyebrow">Reporte 3</p>
+                        <h2>Deuda por socio</h2>
+                    </div>
+                </div>
+                <form id="reporteDeudaForm" class="form-grid" novalidate>
+                    <p class="muted" style="grid-column:1/-1;margin:0;">Consulta el consolidado de deudas pendientes agrupado por socio.</p>
+                    <div class="actions">
+                        <button type="submit">Consultar</button>
+                        <button type="button" id="btnPdfDeuda" class="secondary-btn" disabled>Descargar PDF</button>
+                        <button type="button" id="btnCsvDeuda" class="secondary-btn" disabled>Descargar CSV</button>
+                    </div>
+                </form>
+                <div id="reportesDeudaOutput" class="hidden" style="margin-top:1.25rem;"></div>
             </section>
         </main>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
     <script src="/app.js"></script>
 </body>
 </html>

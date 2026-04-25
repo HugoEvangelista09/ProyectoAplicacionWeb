@@ -46,6 +46,10 @@ public class SocioService {
         if (socioRepository.existsByDni(dto.getDni())) {
             throw new RuntimeException("Ya existe un socio con el DNI: " + dto.getDni());
         }
+        if (dto.getUsername() != null && !dto.getUsername().isBlank()
+                && socioRepository.existsByUsername(dto.getUsername())) {
+            throw new RuntimeException("El username ya esta en uso: " + dto.getUsername());
+        }
         Socio socio = socioMapper.toModel(dto);
         return socioMapper.toDTO(socioRepository.save(socio));
     }

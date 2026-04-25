@@ -12,5 +12,7 @@ public class SocioResponseDTO {
     private String dni;
     private String telefono;
     private String email;
+    private String username;
+    private Boolean tieneLogin;
     private Boolean activo;
 }

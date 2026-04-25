@@ -19,4 +19,6 @@ public class SocioRequestDTO {
 
     private String telefono;
     private String email;
+    private String username;
+    private String password;
 }

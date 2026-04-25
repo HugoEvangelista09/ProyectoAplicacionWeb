@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mis Puestos | Asociacion de Comerciantes</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body data-page="socio-puestos">
+    <div class="app-shell">
+        <aside class="app-sidebar">
+            <div>
+                <p class="eyebrow">Portal Socio</p>
+                <h2>Asociación APROMEC</h2>
+            </div>
+            <p id="sidebarUser" class="sidebar-username"></p>
+            <nav class="nav-links">
+                <a href="/socio-dashboard.html">Resumen</a>
+                <a class="active" href="/socio-puestos.html">Mis Puestos</a>
+                <a href="/socio-deudas.html">Mis Deudas</a>
+                <a href="/socio-pagos.html">Mis Pagos</a>
+            </nav>
+            <button id="logoutBtn" class="secondary-btn" type="button">Cerrar sesión</button>
+        </aside>
+
+        <main class="app-main">
+            <header class="topbar">
+                <div>
+                    <p class="eyebrow">Modulo</p>
+                    <h1>Mis Puestos</h1>
+                </div>
+                <button id="refreshSocioPuestosBtn" type="button">Actualizar lista</button>
+            </header>
+
+            <section class="card">
+                <div class="section-title">
+                    <div>
+                        <p class="eyebrow">Listado</p>
+                        <h2>Puestos asignados</h2>
+                    </div>
+                    <div class="search-bar">
+                        <input type="search" id="searchSocioPuestos" placeholder="Buscar puestos...">
+                    </div>
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Numero</th>
+                                <th>Categoria</th>
+                                <th>Descripcion</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody id="socioPuestosTable"></tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="/app.js"></script>
+</body>
+</html>

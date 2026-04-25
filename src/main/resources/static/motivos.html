@@ -38,7 +38,7 @@
             <div id="messageBox" class="message hidden"></div>
 
             <section class="card">
-                <form id="motivoForm" class="form-grid">
+                <form id="motivoForm" class="form-grid" novalidate>
                     <input type="hidden" id="motivoId">
                     <label>
                         Nombre
@@ -56,6 +56,15 @@
             </section>
 
             <section class="card">
+                <div class="section-title">
+                    <div>
+                        <p class="eyebrow">Listado</p>
+                        <h2>Motivos registrados</h2>
+                    </div>
+                    <div class="search-bar">
+                        <input type="search" id="searchMotivos" placeholder="Buscar motivos...">
+                    </div>
+                </div>
                 <div class="table-wrap">
                     <table>
                         <thead>

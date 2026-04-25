@@ -38,7 +38,7 @@
             <div id="messageBox" class="message hidden"></div>
 
             <section class="card">
-                <form id="deudaForm" class="form-grid">
+                <form id="deudaForm" class="form-grid" novalidate>
                     <label>
                         Socio
                         <select id="deudaSocioId" required></select>
@@ -70,6 +70,15 @@
             </section>
 
             <section class="card">
+                <div class="section-title">
+                    <div>
+                        <p class="eyebrow">Listado</p>
+                        <h2>Deudas registradas</h2>
+                    </div>
+                    <div class="search-bar">
+                        <input type="search" id="searchDeudas" placeholder="Buscar deudas...">
+                    </div>
+                </div>
                 <div class="table-wrap">
                     <table>
                         <thead>

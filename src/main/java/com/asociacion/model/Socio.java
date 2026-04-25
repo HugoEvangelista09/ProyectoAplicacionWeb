@@ -31,6 +31,12 @@ public class Socio {
     @Column
     private String email;
 
+    @Column(unique = true, length = 60)
+    private String username;
+
+    @Column(length = 255)
+    private String password;
+
     @Column(nullable = false)
     private Boolean activo = true;
 

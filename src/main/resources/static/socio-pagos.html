@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mis Pagos | Asociacion de Comerciantes</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body data-page="socio-pagos">
+    <div class="app-shell">
+        <aside class="app-sidebar">
+            <div>
+                <p class="eyebrow">Portal Socio</p>
+                <h2>Asociación APROMEC</h2>
+            </div>
+            <p id="sidebarUser" class="sidebar-username"></p>
+            <nav class="nav-links">
+                <a href="/socio-dashboard.html">Resumen</a>
+                <a href="/socio-puestos.html">Mis Puestos</a>
+                <a href="/socio-deudas.html">Mis Deudas</a>
+                <a class="active" href="/socio-pagos.html">Mis Pagos</a>
+            </nav>
+            <button id="logoutBtn" class="secondary-btn" type="button">Cerrar sesión</button>
+        </aside>
+
+        <main class="app-main">
+            <header class="topbar">
+                <div>
+                    <p class="eyebrow">Modulo</p>
+                    <h1>Mis Pagos</h1>
+                </div>
+                <button id="refreshSocioPagosBtn" type="button">Actualizar lista</button>
+            </header>
+
+            <section class="card">
+                <div class="section-title">
+                    <div>
+                        <p class="eyebrow">Listado</p>
+                        <h2>Mis pagos realizados</h2>
+                    </div>
+                    <div class="search-bar">
+                        <input type="search" id="searchSocioPagos" placeholder="Buscar pagos...">
+                    </div>
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Fecha</th>
+                                <th>Monto Total</th>
+                                <th>Observacion</th>
+                                <th>Items pagados</th>
+                            </tr>
+                        </thead>
+                        <tbody id="socioPagosTable"></tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="/app.js"></script>
+</body>
+</html>

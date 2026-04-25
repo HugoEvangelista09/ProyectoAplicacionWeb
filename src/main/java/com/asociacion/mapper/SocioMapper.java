@@ -15,6 +15,8 @@ public class SocioMapper {
                 .dni(dto.getDni())
                 .telefono(dto.getTelefono())
                 .email(dto.getEmail())
+                .username(dto.getUsername() != null && !dto.getUsername().isBlank() ? dto.getUsername() : null)
+                .password(dto.getPassword() != null && !dto.getPassword().isBlank() ? dto.getPassword() : null)
                 .activo(true)
                 .build();
     }
@@ -27,6 +29,8 @@ public class SocioMapper {
                 .dni(socio.getDni())
                 .telefono(socio.getTelefono())
                 .email(socio.getEmail())
+                .username(socio.getUsername())
+                .tieneLogin(socio.getUsername() != null && socio.getPassword() != null)
                 .activo(socio.getActivo())
                 .build();
     }
@@ -37,5 +41,11 @@ public class SocioMapper {
         socio.setDni(dto.getDni());
         socio.setTelefono(dto.getTelefono());
         socio.setEmail(dto.getEmail());
+        if (dto.getUsername() != null && !dto.getUsername().isBlank()) {
+            socio.setUsername(dto.getUsername());
+        }
+        if (dto.getPassword() != null && !dto.getPassword().isBlank()) {
+            socio.setPassword(dto.getPassword());
+        }
     }
 }

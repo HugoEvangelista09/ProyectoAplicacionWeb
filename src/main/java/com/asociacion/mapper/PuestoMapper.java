@@ -10,17 +10,18 @@ public class PuestoMapper {
 
     public Puesto toModel(PuestoRequestDTO dto) {
         return Puesto.builder()
-                .numero(dto.getNumero())
+                .categoria(dto.getCategoria())
                 .descripcion(dto.getDescripcion())
                 .activo(true)
                 .build();
-        // socio se asigna en el service
     }
 
     public PuestoResponseDTO toDTO(Puesto puesto) {
         return PuestoResponseDTO.builder()
                 .id(puesto.getId())
                 .numero(puesto.getNumero())
+                .categoria(puesto.getCategoria())
+                .categoriaNombre(Puesto.getNombreCategoria(puesto.getCategoria()))
                 .descripcion(puesto.getDescripcion())
                 .activo(puesto.getActivo())
                 .socioId(puesto.getSocio() != null ? puesto.getSocio().getId() : null)
@@ -29,5 +30,10 @@ public class PuestoMapper {
                         : null)
                 .esDeAsociacion(puesto.esDeAsociacion())
                 .build();
+    }
+
+    public void updateModel(Puesto puesto, PuestoRequestDTO dto) {
+        // numero y categoria son inmutables; solo descripcion cambia
+        puesto.setDescripcion(dto.getDescripcion());
     }
 }

@@ -45,7 +45,7 @@
                     </div>
                 </div>
 
-                <form id="socioForm" class="form-grid">
+                <form id="socioForm" class="form-grid" novalidate>
                     <input type="hidden" id="socioId">
                     <label>
                         Nombre
@@ -67,6 +67,14 @@
                         Email
                         <input id="socioEmail" type="email">
                     </label>
+                    <label>
+                        Username (para login)
+                        <input id="socioUsername" type="text" placeholder="Opcional">
+                    </label>
+                    <label>
+                        Contrasena (para login)
+                        <input id="socioPassword" type="password" placeholder="Dejar vacio para no cambiar">
+                    </label>
                     <div class="actions">
                         <button type="submit">Guardar socio</button>
                         <button id="resetSocioBtn" class="secondary-btn" type="button">Limpiar</button>
@@ -80,6 +88,9 @@
                         <p class="eyebrow">Listado</p>
                         <h2>Socios registrados</h2>
                     </div>
+                    <div class="search-bar">
+                        <input type="search" id="searchSocios" placeholder="Buscar socios...">
+                    </div>
                 </div>
                 <div class="table-wrap">
                     <table>
@@ -90,6 +101,8 @@
                                 <th>DNI</th>
                                 <th>Telefono</th>
                                 <th>Email</th>
+                                <th>Username</th>
+                                <th>Login</th>
                                 <th>Estado</th>
                                 <th>Acciones</th>
                             </tr>

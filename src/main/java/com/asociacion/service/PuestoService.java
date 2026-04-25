@@ -54,11 +54,17 @@ public class PuestoService {
 
     @Transactional
     public PuestoResponseDTO crear(PuestoRequestDTO dto) {
-        if (puestoRepository.existsByNumero(dto.getNumero())) {
-            throw new RuntimeException("Ya existe un puesto con el número: " + dto.getNumero());
-        }
+        // Generar correlativo automatico por categoria (ej. NAT-001, NAT-002...)
+        String prefijo = Puesto.getPrefijo(dto.getCategoria());
+        long secuencia = puestoRepository.countByCategoria(dto.getCategoria());
+        String numero;
+        do {
+            secuencia++;
+            numero = String.format("%s-%03d", prefijo, secuencia);
+        } while (puestoRepository.existsByNumero(numero));
 
         Puesto puesto = puestoMapper.toModel(dto);
+        puesto.setNumero(numero);
 
         if (dto.getSocioId() != null) {
             Socio socio = socioService.obtenerEntidad(dto.getSocioId());
@@ -73,14 +79,14 @@ public class PuestoService {
         Puesto puesto = puestoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Puesto no encontrado con id: " + id));
 
-        puesto.setNumero(dto.getNumero());
+        // numero y categoria son inmutables — solo descripcion y socio pueden cambiar
         puesto.setDescripcion(dto.getDescripcion());
 
         if (dto.getSocioId() != null) {
             Socio socio = socioService.obtenerEntidad(dto.getSocioId());
             puesto.setSocio(socio);
         } else {
-            puesto.setSocio(null); // pasa a ser de la asociación
+            puesto.setSocio(null);
         }
 
         return puestoMapper.toDTO(puestoRepository.save(puesto));

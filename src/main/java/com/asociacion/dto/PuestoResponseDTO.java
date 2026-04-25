@@ -8,6 +8,8 @@ import lombok.*;
 public class PuestoResponseDTO {
     private Long id;
     private String numero;
+    private Integer categoria;
+    private String categoriaNombre;
     private String descripcion;
     private Boolean activo;
     private Long socioId;

@@ -14,27 +14,27 @@
             <p class="subtitle">Ingresa al panel administrativo para gestionar socios, puestos, cobros, pagos y reportes desde una interfaz web mas clara.</p>
             <div class="login-tips">
                 <div class="tip-card">
-                    <strong>Usuario demo</strong>
-                    <span>admin</span>
+                    <strong>Administradores</strong>
+                    <span>Usan su username y password registrados en el sistema</span>
                 </div>
                 <div class="tip-card">
-                    <strong>Clave demo</strong>
-                    <span>admin123</span>
+                    <strong>Socios</strong>
+                    <span>Usan el username y password asignados por el administrador</span>
                 </div>
             </div>
         </section>
 
         <section class="login-panel">
-            <form id="loginForm" class="login-form">
+            <form id="loginForm" class="login-form" novalidate>
                 <p class="eyebrow">Acceso</p>
                 <h2>Iniciar sesion</h2>
                 <label>
                     Usuario
-                    <input id="loginUsername" required type="text" placeholder="admin">
+                    <input id="loginUsername" type="text" placeholder="Tu username">
                 </label>
                 <label>
                     Contrasena
-                    <input id="loginPassword" required type="password" placeholder="admin123">
+                    <input id="loginPassword" type="password" placeholder="Tu contrasena">
                 </label>
                 <button type="submit">Entrar al sistema</button>
                 <p id="loginMessage" class="inline-message hidden"></p>

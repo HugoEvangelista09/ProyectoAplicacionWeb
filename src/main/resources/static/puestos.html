@@ -43,17 +43,30 @@
                         <p class="eyebrow">Formulario</p>
                         <h2>Registrar o editar puesto</h2>
                     </div>
+                    <p id="puestoNumeroInfo" class="muted" style="display:none;font-weight:600;"></p>
                 </div>
 
-                <form id="puestoForm" class="form-grid">
+                <form id="puestoForm" class="form-grid" novalidate>
                     <input type="hidden" id="puestoId">
                     <label>
-                        Numero
-                        <input id="puestoNumero" required type="text">
+                        Categoria
+                        <select id="puestoCategoria" required>
+                            <option value="" disabled selected>Seleccionar categoria</option>
+                            <option value="1">Naturista</option>
+                            <option value="2">Abarrotes</option>
+                            <option value="3">Plasticos</option>
+                            <option value="4">Pollos</option>
+                            <option value="5">Carnes</option>
+                            <option value="6">Ferreteria</option>
+                            <option value="7">Ropa</option>
+                            <option value="8">Verduras</option>
+                            <option value="9">Pescados</option>
+                            <option value="10">Restaurantes</option>
+                        </select>
                     </label>
                     <label>
                         Descripcion
-                        <input id="puestoDescripcion" type="text">
+                        <input id="puestoDescripcion" type="text" placeholder="Descripcion opcional">
                     </label>
                     <label>
                         Socio asignado
@@ -69,12 +82,22 @@
             </section>
 
             <section class="card">
+                <div class="section-title">
+                    <div>
+                        <p class="eyebrow">Listado</p>
+                        <h2>Puestos registrados</h2>
+                    </div>
+                    <div class="search-bar">
+                        <input type="search" id="searchPuestos" placeholder="Buscar puestos...">
+                    </div>
+                </div>
                 <div class="table-wrap">
                     <table>
                         <thead>
                             <tr>
                                 <th>ID</th>
                                 <th>Numero</th>
+                                <th>Categoria</th>
                                 <th>Descripcion</th>
                                 <th>Socio</th>
                                 <th>Estado</th>

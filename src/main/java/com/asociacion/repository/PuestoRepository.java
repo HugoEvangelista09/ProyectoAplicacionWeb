@@ -11,4 +11,5 @@ public interface PuestoRepository extends JpaRepository<Puesto, Long> {
     List<Puesto> findBySocioId(Long socioId);
     List<Puesto> findBySocioIsNull();
     boolean existsByNumero(String numero);
+    long countByCategoria(Integer categoria);
 }
