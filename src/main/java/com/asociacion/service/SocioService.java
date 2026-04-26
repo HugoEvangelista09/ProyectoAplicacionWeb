@@ -5,6 +5,7 @@ import com.asociacion.dto.SocioResponseDTO;
 import com.asociacion.mapper.SocioMapper;
 import com.asociacion.model.Socio;
 import com.asociacion.repository.SocioRepository;
+import com.asociacion.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,6 +18,9 @@ public class SocioService {
 
     @Autowired
     private SocioRepository socioRepository;
+
+    @Autowired
+    private UsuarioRepository usuarioRepository;
 
     @Autowired
     private SocioMapper socioMapper;
@@ -43,12 +47,13 @@ public class SocioService {
 
     @Transactional
     public SocioResponseDTO crear(SocioRequestDTO dto) {
-        if (socioRepository.existsByDni(dto.getDni())) {
-            throw new RuntimeException("Ya existe un socio con el DNI: " + dto.getDni());
+        if (socioRepository.existsByDni(dto.getDni()) || usuarioRepository.existsByDni(dto.getDni())) {
+            throw new RuntimeException("Ya existe un registro con el DNI: " + dto.getDni());
         }
-        if (dto.getUsername() != null && !dto.getUsername().isBlank()
-                && socioRepository.existsByUsername(dto.getUsername())) {
-            throw new RuntimeException("El username ya esta en uso: " + dto.getUsername());
+        if (dto.getUsername() != null && !dto.getUsername().isBlank()) {
+            if (socioRepository.existsByUsername(dto.getUsername()) || usuarioRepository.existsByUsername(dto.getUsername())) {
+                throw new RuntimeException("El username ya esta en uso: " + dto.getUsername());
+            }
         }
         Socio socio = socioMapper.toModel(dto);
         return socioMapper.toDTO(socioRepository.save(socio));

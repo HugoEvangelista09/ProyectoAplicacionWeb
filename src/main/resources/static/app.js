@@ -148,6 +148,7 @@ function wireSociosEvents() {
     document.getElementById("loadSociosBtn")?.addEventListener("click", () => loadSocios().catch(handlePageError));
     document.getElementById("socioForm")?.addEventListener("submit", submitSocioForm);
     document.getElementById("resetSocioBtn")?.addEventListener("click", resetSocioForm);
+    wireDniInput("socioDni");
     wireSearch("searchSocios", "sociosTable");
 }
 function wirePuestosEvents() {
@@ -188,6 +189,7 @@ function wireUsuariosEvents() {
     document.getElementById("loadUsuariosBtn")?.addEventListener("click", () => loadUsuarios().catch(handlePageError));
     document.getElementById("usuarioForm")?.addEventListener("submit", submitUsuarioForm);
     document.getElementById("resetUsuarioBtn")?.addEventListener("click", resetUsuarioForm);
+    wireDniInput("usuarioDni");
     wireSearch("searchUsuarios", "usuariosTable");
 }
 function wireSocioDashboardEvents() {
@@ -262,6 +264,16 @@ const V = {
 };
 
 // ── Buscador ──────────────────────────────────────────────────────────────────
+
+function wireDniInput(id) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.setAttribute("maxlength", "8");
+    el.addEventListener("input", () => {
+        const clean = el.value.replace(/\D/g, "").slice(0, 8);
+        if (el.value !== clean) el.value = clean;
+    });
+}
 
 function wireSearch(inputId, tbodyId) {
     const input = document.getElementById(inputId);

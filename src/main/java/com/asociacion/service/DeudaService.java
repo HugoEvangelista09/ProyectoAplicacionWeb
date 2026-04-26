@@ -106,12 +106,10 @@ public class DeudaService {
                 .filter(i -> i.getEstado() == EstadoItem.PAGADO)
                 .count();
 
-        if (itemsPagados == 0) {
-            deuda.setEstado(Deuda.EstadoDeuda.PENDIENTE);
-        } else if (itemsPagados == totalItems) {
+        if (itemsPagados == totalItems) {
             deuda.setEstado(Deuda.EstadoDeuda.PAGADA);
         } else {
-            deuda.setEstado(Deuda.EstadoDeuda.PAGADA_PARCIAL);
+            deuda.setEstado(Deuda.EstadoDeuda.PENDIENTE);
         }
         deudaRepository.save(deuda);
     }

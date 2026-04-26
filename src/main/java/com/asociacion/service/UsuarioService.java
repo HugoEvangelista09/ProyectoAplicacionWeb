@@ -4,6 +4,7 @@ import com.asociacion.dto.UsuarioRequestDTO;
 import com.asociacion.dto.UsuarioResponseDTO;
 import com.asociacion.mapper.UsuarioMapper;
 import com.asociacion.model.Usuario;
+import com.asociacion.repository.SocioRepository;
 import com.asociacion.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -17,6 +18,9 @@ public class UsuarioService {
 
     @Autowired
     private UsuarioRepository usuarioRepository;
+
+    @Autowired
+    private SocioRepository socioRepository;
 
     @Autowired
     private UsuarioMapper usuarioMapper;
@@ -46,11 +50,11 @@ public class UsuarioService {
         if (dto.getPassword() == null || dto.getPassword().isBlank()) {
             throw new RuntimeException("La contrasena es obligatoria");
         }
-        if (usuarioRepository.existsByUsername(dto.getUsername())) {
-            throw new RuntimeException("Ya existe un usuario con el username: " + dto.getUsername());
+        if (usuarioRepository.existsByUsername(dto.getUsername()) || socioRepository.existsByUsername(dto.getUsername())) {
+            throw new RuntimeException("El username ya esta en uso: " + dto.getUsername());
         }
-        if (usuarioRepository.existsByDni(dto.getDni())) {
-            throw new RuntimeException("Ya existe un usuario con el DNI: " + dto.getDni());
+        if (usuarioRepository.existsByDni(dto.getDni()) || socioRepository.existsByDni(dto.getDni())) {
+            throw new RuntimeException("Ya existe un registro con el DNI: " + dto.getDni());
         }
         if (usuarioRepository.existsByRuc(dto.getRuc())) {
             throw new RuntimeException("Ya existe un usuario con el RUC: " + dto.getRuc());

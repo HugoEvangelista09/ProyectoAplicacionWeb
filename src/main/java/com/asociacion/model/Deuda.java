@@ -45,6 +45,6 @@ public class Deuda {
     }
 
     public enum EstadoDeuda {
-        PENDIENTE, PAGADA_PARCIAL, PAGADA
+        PENDIENTE, PAGADA
     }
 }
