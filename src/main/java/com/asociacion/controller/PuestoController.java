@@ -18,12 +18,16 @@ public class PuestoController {
     @Autowired
     private PuestoService puestoService;
 
-    // GET /api/puestos?socioId=5
+    // GET /api/puestos?socioId=5&buscar=term
     @GetMapping
     public ResponseEntity<List<PuestoResponseDTO>> listar(
             @RequestParam(required = false) Long socioId,
-            @RequestParam(required = false, defaultValue = "false") boolean soloAsociacion) {
+            @RequestParam(required = false, defaultValue = "false") boolean soloAsociacion,
+            @RequestParam(required = false) String buscar) {
 
+        if (buscar != null && !buscar.isBlank()) {
+            return ResponseEntity.ok(puestoService.buscar(buscar));
+        }
         if (socioId != null) {
             return ResponseEntity.ok(puestoService.listarPorSocio(socioId));
         } else if (soloAsociacion) {

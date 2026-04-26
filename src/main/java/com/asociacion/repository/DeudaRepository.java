@@ -21,4 +21,16 @@ public interface DeudaRepository extends JpaRepository<Deuda, Long> {
     // Para reporte de caja diario
     @Query("SELECT d FROM Deuda d JOIN d.items i WHERE i.estado = 'PAGADO' AND CAST(d.fecha AS date) = :fecha")
     List<Deuda> findDeudasConPagoEnFecha(@Param("fecha") LocalDate fecha);
+
+    @Query("SELECT DISTINCT d FROM Deuda d WHERE " +
+           "LOWER(d.descripcion)      LIKE LOWER(CONCAT('%',:term,'%')) OR " +
+           "LOWER(d.socio.nombre)     LIKE LOWER(CONCAT('%',:term,'%')) OR " +
+           "LOWER(d.socio.apellido)   LIKE LOWER(CONCAT('%',:term,'%'))")
+    List<Deuda> buscar(@Param("term") String term);
+
+    @Query("SELECT DISTINCT d FROM Deuda d WHERE d.socio.id = :socioId AND (" +
+           "LOWER(d.descripcion)      LIKE LOWER(CONCAT('%',:term,'%')) OR " +
+           "LOWER(d.socio.nombre)     LIKE LOWER(CONCAT('%',:term,'%')) OR " +
+           "LOWER(d.socio.apellido)   LIKE LOWER(CONCAT('%',:term,'%')))")
+    List<Deuda> buscarPorSocio(@Param("socioId") Long socioId, @Param("term") String term);
 }

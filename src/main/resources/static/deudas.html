@@ -51,20 +51,30 @@
                         Descripcion
                         <input id="deudaDescripcion" type="text" placeholder="Ej. cuota mensual de abril">
                     </label>
-                    <label>
-                        Motivo
-                        <select id="deudaMotivoId" required></select>
-                    </label>
-                    <label>
-                        Monto
-                        <input id="deudaMonto" min="0.01" required step="0.01" type="number">
-                    </label>
-                    <label class="full-width">
-                        Observacion
-                        <input id="deudaObservacion" type="text">
-                    </label>
+                    <fieldset class="full-width">
+                        <legend>Ítems de la deuda</legend>
+                        <div class="form-grid" style="margin-bottom:0.75rem">
+                            <label>
+                                Motivo
+                                <select id="deudaMotivoId"></select>
+                            </label>
+                            <label>
+                                Monto
+                                <input id="deudaMonto" min="0.01" step="0.01" type="number" placeholder="0.00">
+                            </label>
+                            <label>
+                                Observación
+                                <input id="deudaObservacion" type="text" placeholder="Opcional">
+                            </label>
+                            <div style="display:flex;align-items:flex-end">
+                                <button type="button" id="addItemBtn" class="secondary-btn" style="width:100%">+ Añadir ítem</button>
+                            </div>
+                        </div>
+                        <div id="deudaItemsList"><p class="muted" style="font-size:0.85rem;margin:0">Sin ítems añadidos aún.</p></div>
+                    </fieldset>
                     <div class="actions">
                         <button type="submit">Registrar deuda</button>
+                        <span id="itemsCountMsg" class="muted" style="font-size:0.85rem"></span>
                     </div>
                 </form>
             </section>
@@ -75,8 +85,11 @@
                         <p class="eyebrow">Listado</p>
                         <h2>Deudas registradas</h2>
                     </div>
-                    <div class="search-bar">
-                        <input type="search" id="searchDeudas" placeholder="Buscar deudas...">
+                    <div class="section-title-right">
+                        <div id="deudasPage"></div>
+                        <div class="search-bar">
+                            <input type="search" id="searchDeudas" placeholder="Buscar deudas...">
+                        </div>
                     </div>
                 </div>
                 <div class="table-wrap">
@@ -90,6 +103,7 @@
                                 <th>Estado</th>
                                 <th>Total pendiente</th>
                                 <th>Detalle</th>
+                                <th>Acciones</th>
                             </tr>
                         </thead>
                         <tbody id="deudasTable"></tbody>

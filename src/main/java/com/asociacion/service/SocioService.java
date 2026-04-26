@@ -75,6 +75,13 @@ public class SocioService {
         socioRepository.save(socio);
     }
 
+    public List<SocioResponseDTO> buscar(String term) {
+        return socioRepository.buscar(term)
+                .stream()
+                .map(socioMapper::toDTO)
+                .collect(Collectors.toList());
+    }
+
     // Método interno para uso en otros servicios
     public Socio obtenerEntidad(Long id) {
         return socioRepository.findById(id)

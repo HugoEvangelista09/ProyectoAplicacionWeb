@@ -18,10 +18,14 @@ public class UsuarioController {
     @Autowired
     private UsuarioService usuarioService;
 
-    // GET /api/usuarios?soloActivos=true
+    // GET /api/usuarios?soloActivos=true&buscar=term
     @GetMapping
     public ResponseEntity<List<UsuarioResponseDTO>> listar(
-            @RequestParam(required = false, defaultValue = "false") boolean soloActivos) {
+            @RequestParam(required = false, defaultValue = "false") boolean soloActivos,
+            @RequestParam(required = false) String buscar) {
+        if (buscar != null && !buscar.isBlank()) {
+            return ResponseEntity.ok(usuarioService.buscar(buscar));
+        }
         List<UsuarioResponseDTO> usuarios = soloActivos
                 ? usuarioService.listarActivos()
                 : usuarioService.listarTodos();

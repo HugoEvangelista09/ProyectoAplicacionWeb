@@ -61,6 +61,13 @@ public class MotivoCobroService {
         motivoCobroRepository.save(motivo);
     }
 
+    public List<MotivoCobroResponseDTO> buscar(String term) {
+        return motivoCobroRepository.buscar(term)
+                .stream()
+                .map(motivoCobroMapper::toDTO)
+                .collect(Collectors.toList());
+    }
+
     // Método interno
     public MotivoCobro obtenerEntidad(Long id) {
         return motivoCobroRepository.findById(id)

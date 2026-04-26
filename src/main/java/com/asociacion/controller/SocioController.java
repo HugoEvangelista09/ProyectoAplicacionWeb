@@ -18,10 +18,14 @@ public class SocioController {
     @Autowired
     private SocioService socioService;
 
-    // GET /api/socios?soloActivos=true
+    // GET /api/socios?soloActivos=true&buscar=term
     @GetMapping
     public ResponseEntity<List<SocioResponseDTO>> listar(
-            @RequestParam(required = false, defaultValue = "false") boolean soloActivos) {
+            @RequestParam(required = false, defaultValue = "false") boolean soloActivos,
+            @RequestParam(required = false) String buscar) {
+        if (buscar != null && !buscar.isBlank()) {
+            return ResponseEntity.ok(socioService.buscar(buscar));
+        }
         List<SocioResponseDTO> socios = soloActivos
                 ? socioService.listarActivos()
                 : socioService.listarTodos();

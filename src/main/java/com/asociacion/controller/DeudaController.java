@@ -1,5 +1,6 @@
 package com.asociacion.controller;
 
+import com.asociacion.dto.DeudaItemRequestDTO;
 import com.asociacion.dto.DeudaMasivaRequestDTO;
 import com.asociacion.dto.DeudaRequestDTO;
 import com.asociacion.dto.DeudaResponseDTO;
@@ -19,12 +20,19 @@ public class DeudaController {
     @Autowired
     private DeudaService deudaService;
 
-    // GET /api/deudas?socioId=5&soloPendientes=true
+    // GET /api/deudas?socioId=5&soloPendientes=true&buscar=term
     @GetMapping
     public ResponseEntity<List<DeudaResponseDTO>> listar(
             @RequestParam(required = false) Long socioId,
-            @RequestParam(required = false, defaultValue = "false") boolean soloPendientes) {
+            @RequestParam(required = false, defaultValue = "false") boolean soloPendientes,
+            @RequestParam(required = false) String buscar) {
 
+        if (buscar != null && !buscar.isBlank()) {
+            if (socioId != null) {
+                return ResponseEntity.ok(deudaService.buscarPorSocio(socioId, buscar));
+            }
+            return ResponseEntity.ok(deudaService.buscar(buscar));
+        }
         if (socioId != null && soloPendientes) {
             return ResponseEntity.ok(deudaService.listarPendientesPorSocio(socioId));
         } else if (socioId != null) {
@@ -50,5 +58,13 @@ public class DeudaController {
     public ResponseEntity<List<DeudaResponseDTO>> crearMasivo(
             @Valid @RequestBody DeudaMasivaRequestDTO dto) {
         return ResponseEntity.status(HttpStatus.CREATED).body(deudaService.crearMasivo(dto));
+    }
+
+    // POST /api/deudas/{id}/items  (agregar ítems a una deuda existente)
+    @PostMapping("/{id}/items")
+    public ResponseEntity<DeudaResponseDTO> agregarItems(
+            @PathVariable Long id,
+            @RequestBody List<DeudaItemRequestDTO> items) {
+        return ResponseEntity.ok(deudaService.agregarItems(id, items));
     }
 }

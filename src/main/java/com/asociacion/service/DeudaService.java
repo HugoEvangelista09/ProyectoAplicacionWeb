@@ -114,6 +114,38 @@ public class DeudaService {
         deudaRepository.save(deuda);
     }
 
+    @Transactional
+    public DeudaResponseDTO agregarItems(Long deudaId, List<DeudaItemRequestDTO> itemsDTO) {
+        Deuda deuda = obtenerEntidad(deudaId);
+        List<DeudaItem> nuevos = itemsDTO.stream().map(dto -> {
+            MotivoCobro motivo = motivoCobroService.obtenerEntidad(dto.getMotivoCobroId());
+            return DeudaItem.builder()
+                    .deuda(deuda)
+                    .motivoCobro(motivo)
+                    .monto(dto.getMonto())
+                    .observacion(dto.getObservacion())
+                    .estado(EstadoItem.PENDIENTE)
+                    .build();
+        }).collect(Collectors.toList());
+        deuda.getItems().addAll(nuevos);
+        deuda.setEstado(Deuda.EstadoDeuda.PENDIENTE);
+        return deudaMapper.toDTO(deudaRepository.save(deuda));
+    }
+
+    public List<DeudaResponseDTO> buscar(String term) {
+        return deudaRepository.buscar(term)
+                .stream()
+                .map(deudaMapper::toDTO)
+                .collect(Collectors.toList());
+    }
+
+    public List<DeudaResponseDTO> buscarPorSocio(Long socioId, String term) {
+        return deudaRepository.buscarPorSocio(socioId, term)
+                .stream()
+                .map(deudaMapper::toDTO)
+                .collect(Collectors.toList());
+    }
+
     public Deuda obtenerEntidad(Long id) {
         return deudaRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Deuda no encontrada con id: " + id));

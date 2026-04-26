@@ -18,10 +18,14 @@ public class MotivoCobroController {
     @Autowired
     private MotivoCobroService motivoCobroService;
 
-    // GET /api/motivos-cobro?soloActivos=true
+    // GET /api/motivos-cobro?soloActivos=true&buscar=term
     @GetMapping
     public ResponseEntity<List<MotivoCobroResponseDTO>> listar(
-            @RequestParam(required = false, defaultValue = "true") boolean soloActivos) {
+            @RequestParam(required = false, defaultValue = "true") boolean soloActivos,
+            @RequestParam(required = false) String buscar) {
+        if (buscar != null && !buscar.isBlank()) {
+            return ResponseEntity.ok(motivoCobroService.buscar(buscar));
+        }
         List<MotivoCobroResponseDTO> motivos = soloActivos
                 ? motivoCobroService.listarActivos()
                 : motivoCobroService.listarTodos();

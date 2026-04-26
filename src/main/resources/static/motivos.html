@@ -39,17 +39,23 @@
 
             <section class="card">
                 <form id="motivoForm" class="form-grid" novalidate>
-                    <input type="hidden" id="motivoId">
-                    <label>
-                        Nombre
-                        <input id="motivoNombre" required type="text">
-                    </label>
-                    <label class="full-width">
-                        Descripcion
-                        <input id="motivoDescripcion" type="text">
-                    </label>
+                    <div class="row">
+                        <div class="col-4">
+                            <input type="hidden" id="motivoId">
+                            <label>
+                                Nombre
+                                <input id="motivoNombre" required type="text">
+                            </label>
+                        </div>
+                        <div class="col-8">
+                            <label class="full-width">
+                                Descripcion
+                                <input id="motivoDescripcion" type="text">
+                            </label>
+                        </div>
+                    </div>
                     <div class="actions">
-                        <button type="submit">Guardar motivo</button>
+                        <button type="submit">Guardar</button>
                         <button id="resetMotivoBtn" class="secondary-btn" type="button">Limpiar</button>
                     </div>
                 </form>
@@ -61,8 +67,11 @@
                         <p class="eyebrow">Listado</p>
                         <h2>Motivos registrados</h2>
                     </div>
-                    <div class="search-bar">
-                        <input type="search" id="searchMotivos" placeholder="Buscar motivos...">
+                    <div class="section-title-right">
+                        <div id="motivosPage"></div>
+                        <div class="search-bar">
+                            <input type="search" id="searchMotivos" placeholder="Buscar motivos...">
+                        </div>
                     </div>
                 </div>
                 <div class="table-wrap">

@@ -2,8 +2,59 @@ const AUTH_TOKEN_KEY = "asociacion-token"; // JWT completo "Bearer ..."
 const AUTH_ROLE_KEY  = "asociacion-role";  // "admin" | "operador" | "socio"
 const AUTH_SOCIO_KEY = "asociacion-socio"; // JSON {id,nombre,apellido}
 
-const state = { socios: [], puestos: [], motivos: [], deudas: [], pagos: [], usuarios: [] };
+const state = {
+    socios: [], puestos: [], motivos: [], deudas: [], pagos: [], usuarios: [],
+    socioPuestos: [], socioDeudas: [], socioPagos: [],
+};
+let deudaItemBuffer = [];
+
+const PAGE_SIZE = 10;
+const pageState = {
+    socios: 1, puestos: 1, motivos: 1, deudas: 1, pagos: 1, usuarios: 1,
+    socioPuestos: 1, socioDeudas: 1, socioPagos: 1,
+};
 const reporteState = { cajaDiaria: null, cajaRango: null, deudaPorSocio: null };
+
+// ── Paginación ────────────────────────────────────────────────────────────────
+
+function paginate(data, key) {
+    const sorted = [...data].sort((a, b) => (b.id || 0) - (a.id || 0));
+    const page   = pageState[key] || 1;
+    return sorted.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+}
+
+function renderPaginator(containerId, total, key) {
+    const el = document.getElementById(containerId);
+    if (!el) return;
+    const pages = Math.ceil(total / PAGE_SIZE);
+    if (pages <= 1) { el.innerHTML = ""; return; }
+    const cur = pageState[key] || 1;
+    const range = new Set([1, pages]);
+    for (let i = Math.max(2, cur - 2); i <= Math.min(pages - 1, cur + 2); i++) range.add(i);
+    const sorted = [...range].sort((a, b) => a - b);
+    let html = `<div class="paginator">`;
+    html += `<button type="button" class="secondary-btn" ${cur === 1 ? "disabled" : ""} onclick="goPage('${key}',${cur - 1})">&#8249;</button>`;
+    let prev = 0;
+    for (const p of sorted) {
+        if (p - prev > 1) html += `<span class="paginator-ellipsis">&#8230;</span>`;
+        html += `<button type="button" ${p === cur ? "" : "class='secondary-btn'"} onclick="goPage('${key}',${p})">${p}</button>`;
+        prev = p;
+    }
+    html += `<button type="button" class="secondary-btn" ${cur === pages ? "disabled" : ""} onclick="goPage('${key}',${cur + 1})">&#8250;</button>`;
+    html += `<span class="paginator-info">${(cur - 1) * PAGE_SIZE + 1}–${Math.min(cur * PAGE_SIZE, total)} de ${total}</span>`;
+    html += `</div>`;
+    el.innerHTML = html;
+}
+
+function goPage(key, page) {
+    pageState[key] = page;
+    const map = {
+        socios: renderSocios, puestos: renderPuestos, motivos: renderMotivos,
+        deudas: renderDeudas, pagos: renderPagos, usuarios: renderUsuarios,
+        socioPuestos: renderSocioPuestos, socioDeudas: renderSocioDeudas, socioPagos: renderSocioPagos,
+    };
+    if (map[key]) map[key]();
+}
 
 // ── Arranque ──────────────────────────────────────────────────────────────────
 
@@ -149,30 +200,31 @@ function wireSociosEvents() {
     document.getElementById("socioForm")?.addEventListener("submit", submitSocioForm);
     document.getElementById("resetSocioBtn")?.addEventListener("click", resetSocioForm);
     wireDniInput("socioDni");
-    wireSearch("searchSocios", "sociosTable");
+    wireSearchBtn("searchSocios", term => loadSocios(false, term));
 }
 function wirePuestosEvents() {
     document.getElementById("loadPuestosBtn")?.addEventListener("click", () => loadPuestos().catch(handlePageError));
     document.getElementById("puestoForm")?.addEventListener("submit", submitPuestoForm);
     document.getElementById("resetPuestoBtn")?.addEventListener("click", resetPuestoForm);
-    wireSearch("searchPuestos", "puestosTable");
+    wireSearchBtn("searchPuestos", term => loadPuestos(false, term));
 }
 function wireMotivosEvents() {
     document.getElementById("loadMotivosBtn")?.addEventListener("click", () => loadMotivos().catch(handlePageError));
     document.getElementById("motivoForm")?.addEventListener("submit", submitMotivoForm);
     document.getElementById("resetMotivoBtn")?.addEventListener("click", resetMotivoForm);
-    wireSearch("searchMotivos", "motivosTable");
+    wireSearchBtn("searchMotivos", term => loadMotivos(false, term));
 }
 function wireDeudasEvents() {
     document.getElementById("loadDeudasBtn")?.addEventListener("click", () => loadDeudas().catch(handlePageError));
     document.getElementById("deudaForm")?.addEventListener("submit", submitDeudaForm);
-    wireSearch("searchDeudas", "deudasTable");
+    document.getElementById("addItemBtn")?.addEventListener("click", addDeudaItem);
+    wireSearchBtn("searchDeudas", term => loadDeudas(false, term));
 }
 function wirePagosEvents() {
     document.getElementById("loadPagosBtn")?.addEventListener("click", () => loadPagos().catch(handlePageError));
     document.getElementById("pagoForm")?.addEventListener("submit", submitPagoForm);
     document.getElementById("pagoSocioId")?.addEventListener("change", updatePagoItems);
-    wireSearch("searchPagos", "pagosTable");
+    wireSearchBtn("searchPagos", term => loadPagos(false, term));
 }
 function wireReportesEvents() {
     document.getElementById("reporteCajaForm")?.addEventListener("submit", loadReporteCaja);
@@ -190,22 +242,22 @@ function wireUsuariosEvents() {
     document.getElementById("usuarioForm")?.addEventListener("submit", submitUsuarioForm);
     document.getElementById("resetUsuarioBtn")?.addEventListener("click", resetUsuarioForm);
     wireDniInput("usuarioDni");
-    wireSearch("searchUsuarios", "usuariosTable");
+    wireSearchBtn("searchUsuarios", term => loadUsuarios(false, term));
 }
 function wireSocioDashboardEvents() {
     document.getElementById("refreshSocioDashBtn")?.addEventListener("click", () => loadSocioDashboard().catch(handlePageError));
 }
 function wireSocioPuestosEvents() {
     document.getElementById("refreshSocioPuestosBtn")?.addEventListener("click", () => loadSocioPuestos().catch(handlePageError));
-    wireSearch("searchSocioPuestos", "socioPuestosTable");
+    wireSearchBtn("searchSocioPuestos", term => loadSocioPuestos(false, term));
 }
 function wireSocioDeudasEvents() {
     document.getElementById("refreshSocioDeudasBtn")?.addEventListener("click", () => loadSocioDeudas().catch(handlePageError));
-    wireSearch("searchSocioDeudas", "socioDeudasTable");
+    wireSearchBtn("searchSocioDeudas", term => loadSocioDeudas(false, term));
 }
 function wireSocioPagosEvents() {
     document.getElementById("refreshSocioPagosBtn")?.addEventListener("click", () => loadSocioPagos().catch(handlePageError));
-    wireSearch("searchSocioPagos", "socioPagosTable");
+    wireSearchBtn("searchSocioPagos", term => loadSocioPagos(false, term));
 }
 
 // ── Motor de validacion ───────────────────────────────────────────────────────
@@ -275,15 +327,17 @@ function wireDniInput(id) {
     });
 }
 
-function wireSearch(inputId, tbodyId) {
+function wireSearchBtn(inputId, loadFn) {
     const input = document.getElementById(inputId);
     if (!input) return;
-    input.addEventListener("input", () => {
-        const term = input.value.toLowerCase();
-        document.getElementById(tbodyId)?.querySelectorAll("tr").forEach(tr => {
-            tr.style.display = tr.textContent.toLowerCase().includes(term) ? "" : "none";
-        });
-    });
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "btn-buscar";
+    btn.textContent = "Buscar";
+    const doSearch = () => loadFn(input.value.trim()).catch(handlePageError);
+    btn.addEventListener("click", doSearch);
+    input.addEventListener("keydown", e => { if (e.key === "Enter") doSearch(); });
+    input.insertAdjacentElement("afterend", btn);
 }
 
 // ── API ───────────────────────────────────────────────────────────────────────
@@ -396,8 +450,10 @@ function renderDashboardDeudas() {
 
 // ── Socios ────────────────────────────────────────────────────────────────────
 
-async function loadSocios(notify = true) {
-    state.socios = await apiFetch("/api/socios");
+async function loadSocios(notify = true, buscar = "") {
+    const url = buscar ? `/api/socios?buscar=${encodeURIComponent(buscar)}` : "/api/socios";
+    state.socios = await apiFetch(url);
+    pageState.socios = 1;
     renderSocios();
     renderSelect("puestoSocioId", state.socios.filter(s => s.activo), socioFullName, true, "Pertenece a la asociacion");
     renderSelect("deudaSocioId",  state.socios.filter(s => s.activo), socioFullName);
@@ -408,7 +464,8 @@ async function loadSocios(notify = true) {
 function renderSocios() {
     const tbody = document.getElementById("sociosTable");
     if (!tbody) return;
-    tbody.innerHTML = state.socios.map(s => `
+    const page = paginate(state.socios, "socios");
+    tbody.innerHTML = page.map(s => `
         <tr>
             <td>${s.id}</td>
             <td>${socioFullName(s)}</td>
@@ -422,7 +479,8 @@ function renderSocios() {
                 <button type="button" onclick="editSocio(${s.id})">Editar</button>
                 <button type="button" class="danger-btn" onclick="deleteSocio(${s.id})">Desactivar</button>
             </div></td>
-        </tr>`).join("");
+        </tr>`).join("") || "<tr><td colspan='9' class='muted' style='text-align:center'>Sin registros.</td></tr>";
+    renderPaginator("sociosPage", state.socios.length, "socios");
 }
 
 async function submitSocioForm(event) {
@@ -484,8 +542,10 @@ function resetSocioForm() {
 
 // ── Puestos ───────────────────────────────────────────────────────────────────
 
-async function loadPuestos(notify = true) {
-    state.puestos = await apiFetch("/api/puestos");
+async function loadPuestos(notify = true, buscar = "") {
+    const url = buscar ? `/api/puestos?buscar=${encodeURIComponent(buscar)}` : "/api/puestos";
+    state.puestos = await apiFetch(url);
+    pageState.puestos = 1;
     renderPuestos();
     if (notify) showMessage("Puestos cargados.", "success");
 }
@@ -493,7 +553,8 @@ async function loadPuestos(notify = true) {
 function renderPuestos() {
     const tbody = document.getElementById("puestosTable");
     if (!tbody) return;
-    tbody.innerHTML = state.puestos.map(p => `
+    const page = paginate(state.puestos, "puestos");
+    tbody.innerHTML = page.map(p => `
         <tr>
             <td>${p.id}</td>
             <td><strong>${p.numero}</strong></td>
@@ -505,7 +566,8 @@ function renderPuestos() {
                 <button type="button" onclick="editPuesto(${p.id})">Editar</button>
                 <button type="button" class="danger-btn" onclick="deletePuesto(${p.id})">Desactivar</button>
             </div></td>
-        </tr>`).join("");
+        </tr>`).join("") || "<tr><td colspan='7' class='muted' style='text-align:center'>Sin registros.</td></tr>";
+    renderPaginator("puestosPage", state.puestos.length, "puestos");
 }
 
 async function submitPuestoForm(event) {
@@ -564,8 +626,12 @@ function resetPuestoForm() {
 
 // ── Motivos ───────────────────────────────────────────────────────────────────
 
-async function loadMotivos(notify = true) {
-    state.motivos = await apiFetch("/api/motivos-cobro?soloActivos=false");
+async function loadMotivos(notify = true, buscar = "") {
+    const url = buscar
+        ? `/api/motivos-cobro?soloActivos=false&buscar=${encodeURIComponent(buscar)}`
+        : "/api/motivos-cobro?soloActivos=false";
+    state.motivos = await apiFetch(url);
+    pageState.motivos = 1;
     renderMotivos();
     renderSelect("deudaMotivoId", state.motivos.filter(m => m.activo), m => m.nombre);
     if (notify) showMessage("Motivos cargados.", "success");
@@ -574,7 +640,8 @@ async function loadMotivos(notify = true) {
 function renderMotivos() {
     const tbody = document.getElementById("motivosTable");
     if (!tbody) return;
-    tbody.innerHTML = state.motivos.map(m => `
+    const page = paginate(state.motivos, "motivos");
+    tbody.innerHTML = page.map(m => `
         <tr>
             <td>${m.id}</td>
             <td>${m.nombre}</td>
@@ -584,7 +651,8 @@ function renderMotivos() {
                 <button type="button" onclick="editMotivo(${m.id})">Editar</button>
                 <button type="button" class="danger-btn" onclick="deleteMotivo(${m.id})">Desactivar</button>
             </div></td>
-        </tr>`).join("");
+        </tr>`).join("") || "<tr><td colspan='5' class='muted' style='text-align:center'>Sin registros.</td></tr>";
+    renderPaginator("motivosPage", state.motivos.length, "motivos");
 }
 
 async function submitMotivoForm(event) {
@@ -632,8 +700,10 @@ function resetMotivoForm() {
 
 // ── Deudas ────────────────────────────────────────────────────────────────────
 
-async function loadDeudas(notify = true) {
-    state.deudas = await apiFetch("/api/deudas");
+async function loadDeudas(notify = true, buscar = "") {
+    const url = buscar ? `/api/deudas?buscar=${encodeURIComponent(buscar)}` : "/api/deudas";
+    state.deudas = await apiFetch(url);
+    pageState.deudas = 1;
     renderDeudas();
     updatePagoItems();
     if (notify) showMessage("Deudas cargadas.", "success");
@@ -642,7 +712,8 @@ async function loadDeudas(notify = true) {
 function renderDeudas() {
     const tbody = document.getElementById("deudasTable");
     if (!tbody) return;
-    tbody.innerHTML = state.deudas.map(d => `
+    const page = paginate(state.deudas, "deudas");
+    tbody.innerHTML = page.map(d => `
         <tr>
             <td>${d.id}</td>
             <td>${d.socioNombre || d.socioId}</td>
@@ -651,12 +722,99 @@ function renderDeudas() {
             <td>${d.estado}</td>
             <td>${formatMoney(d.totalPendiente)}</td>
             <td>${renderDeudaItems(d.items)}</td>
-        </tr>`).join("");
+            <td class="table-actions">
+                <button type="button" class="secondary-btn" onclick="openAddItemsModal(${d.id})">+ Ítem</button>
+            </td>
+        </tr>`).join("") || "<tr><td colspan='8' class='muted' style='text-align:center'>Sin registros.</td></tr>";
+    renderPaginator("deudasPage", state.deudas.length, "deudas");
+}
+
+async function openAddItemsModal(deudaId) {
+    const motivos = state.motivos.filter(m => m.activo);
+    const options = motivos.map(m => `<option value="${m.id}">${m.nombre}</option>`).join("");
+    const { value: item } = await Swal.fire({
+        title: `Añadir ítem — Deuda #${deudaId}`,
+        html: `
+            <div style="display:grid;gap:0.75rem;text-align:left">
+                <label style="font-size:0.8rem;font-weight:700;color:#617076;text-transform:uppercase;letter-spacing:.07em">Motivo
+                    <select id="swal-motivo" style="display:block;width:100%;margin-top:0.4rem;padding:0.7rem 1rem;border:1.5px solid #dccfc4;border-radius:8px;font-size:0.95rem">
+                        <option value="">Seleccione...</option>${options}
+                    </select>
+                </label>
+                <label style="font-size:0.8rem;font-weight:700;color:#617076;text-transform:uppercase;letter-spacing:.07em">Monto
+                    <input id="swal-monto" type="number" min="0.01" step="0.01" placeholder="0.00"
+                        style="display:block;width:100%;margin-top:0.4rem;padding:0.7rem 1rem;border:1.5px solid #dccfc4;border-radius:8px;font-size:0.95rem">
+                </label>
+                <label style="font-size:0.8rem;font-weight:700;color:#617076;text-transform:uppercase;letter-spacing:.07em">Observación
+                    <input id="swal-obs" type="text" placeholder="Opcional"
+                        style="display:block;width:100%;margin-top:0.4rem;padding:0.7rem 1rem;border:1.5px solid #dccfc4;border-radius:8px;font-size:0.95rem">
+                </label>
+            </div>`,
+        confirmButtonText: "Añadir ítem",
+        showCancelButton: true,
+        cancelButtonText: "Cancelar",
+        preConfirm: () => {
+            const motivoId = Number(document.getElementById("swal-motivo").value);
+            const monto    = Number(document.getElementById("swal-monto").value);
+            const obs      = document.getElementById("swal-obs").value.trim();
+            if (!motivoId) { Swal.showValidationMessage("Seleccione un motivo de cobro"); return false; }
+            if (!monto || monto <= 0) { Swal.showValidationMessage("Ingrese un monto válido mayor a 0"); return false; }
+            return { motivoCobroId: motivoId, monto, observacion: obs || null };
+        },
+    });
+    if (!item) return;
+    try {
+        await apiFetch(`/api/deudas/${deudaId}/items`, { method: "POST", body: JSON.stringify([item]) });
+        await loadDeudas(false);
+        showMessage("Ítem añadido correctamente.", "success");
+    } catch (error) { handlePageError(error); }
 }
 
 function renderDeudaItems(items = []) {
     if (!items.length) return "<span class='muted'>Sin items</span>";
     return items.map(i => `<div><strong>${i.motivoCobroNombre}</strong> - ${formatMoney(i.monto)} - ${i.estado}</div>`).join("");
+}
+
+function addDeudaItem() {
+    const motivoId = Number(document.getElementById("deudaMotivoId").value);
+    const monto    = Number(document.getElementById("deudaMonto").value);
+    const obs      = document.getElementById("deudaObservacion").value.trim();
+    if (!motivoId) {
+        Swal.fire({ icon: "warning", title: "Motivo requerido", text: "Seleccione un motivo de cobro." });
+        return;
+    }
+    if (!monto || monto <= 0) {
+        Swal.fire({ icon: "warning", title: "Monto inválido", text: "Ingrese un monto mayor a 0." });
+        return;
+    }
+    const motivo = state.motivos.find(m => m.id === motivoId);
+    deudaItemBuffer.push({ motivoCobroId: motivoId, motivoNombre: motivo?.nombre || "", monto, observacion: obs });
+    document.getElementById("deudaMotivoId").value  = "";
+    document.getElementById("deudaMonto").value     = "";
+    document.getElementById("deudaObservacion").value = "";
+    renderDeudaItemsPreview();
+}
+
+function removeDeudaItem(index) {
+    deudaItemBuffer.splice(index, 1);
+    renderDeudaItemsPreview();
+}
+
+function renderDeudaItemsPreview() {
+    const el = document.getElementById("deudaItemsList");
+    if (!el) return;
+    const countMsg = document.getElementById("itemsCountMsg");
+    if (!deudaItemBuffer.length) {
+        el.innerHTML = "<p class='muted' style='font-size:0.85rem;margin:0'>Sin ítems añadidos aún.</p>";
+        if (countMsg) countMsg.textContent = "";
+        return;
+    }
+    el.innerHTML = `<div class="items-preview-list">${deudaItemBuffer.map((item, i) => `
+        <div class="item-preview-row">
+            <span><strong>${item.motivoNombre}</strong> — ${formatMoney(item.monto)}${item.observacion ? ` <em class="muted">(${item.observacion})</em>` : ""}</span>
+            <button type="button" class="danger-btn" onclick="removeDeudaItem(${i})">✕</button>
+        </div>`).join("")}</div>`;
+    if (countMsg) countMsg.textContent = `${deudaItemBuffer.length} ítem${deudaItemBuffer.length !== 1 ? "s" : ""} añadido${deudaItemBuffer.length !== 1 ? "s" : ""}`;
 }
 
 async function submitDeudaForm(event) {
@@ -666,24 +824,24 @@ async function submitDeudaForm(event) {
         { id: "deudaSocioId",     checks: [V.notSelect("Seleccione un socio")] },
         { id: "deudaFecha",       checks: [V.notEmpty("La fecha es obligatoria")] },
         { id: "deudaDescripcion", checks: [V.notEmpty("La descripcion es obligatoria"), V.minLen(3)] },
-        { id: "deudaMotivoId",    checks: [V.notSelect("Seleccione un motivo de cobro")] },
-        { id: "deudaMonto",       checks: [V.notEmpty("El monto es obligatorio"), V.positive()] },
     ]);
     if (!valid) return;
+    if (!deudaItemBuffer.length) {
+        Swal.fire({ icon: "warning", title: "Sin ítems", text: "Añada al menos un ítem antes de registrar la deuda." });
+        return;
+    }
     const payload = {
         socioId:     Number(document.getElementById("deudaSocioId").value),
         fecha:       document.getElementById("deudaFecha").value || null,
         descripcion: document.getElementById("deudaDescripcion").value.trim(),
-        items: [{
-            motivoCobroId: Number(document.getElementById("deudaMotivoId").value),
-            monto:         Number(document.getElementById("deudaMonto").value),
-            observacion:   document.getElementById("deudaObservacion").value.trim() || null,
-        }],
+        items:       deudaItemBuffer.map(i => ({ motivoCobroId: i.motivoCobroId, monto: i.monto, observacion: i.observacion || null })),
     };
     try {
         await apiFetch("/api/deudas", { method: "POST", body: JSON.stringify(payload) });
         document.getElementById("deudaForm")?.reset();
         clearErrors("deudaForm");
+        deudaItemBuffer = [];
+        renderDeudaItemsPreview();
         setToday();
         await loadDeudas(false);
         showMessage("Deuda registrada.", "success");
@@ -692,8 +850,10 @@ async function submitDeudaForm(event) {
 
 // ── Pagos ─────────────────────────────────────────────────────────────────────
 
-async function loadPagos(notify = true) {
-    state.pagos = await apiFetch("/api/pagos");
+async function loadPagos(notify = true, buscar = "") {
+    const url = buscar ? `/api/pagos?buscar=${encodeURIComponent(buscar)}` : "/api/pagos";
+    state.pagos = await apiFetch(url);
+    pageState.pagos = 1;
     renderPagos();
     if (notify) showMessage("Pagos cargados.", "success");
 }
@@ -701,7 +861,8 @@ async function loadPagos(notify = true) {
 function renderPagos() {
     const tbody = document.getElementById("pagosTable");
     if (!tbody) return;
-    tbody.innerHTML = state.pagos.map(p => `
+    const page = paginate(state.pagos, "pagos");
+    tbody.innerHTML = page.map(p => `
         <tr>
             <td>${p.id}</td>
             <td>${p.socioNombre || p.socioId}</td>
@@ -709,7 +870,8 @@ function renderPagos() {
             <td>${formatMoney(p.montoTotal)}</td>
             <td>${p.observacion || "-"}</td>
             <td>${(p.itemsPagados || []).map(i => i.motivoCobroNombre).join(", ") || "-"}</td>
-        </tr>`).join("");
+        </tr>`).join("") || "<tr><td colspan='6' class='muted' style='text-align:center'>Sin registros.</td></tr>";
+    renderPaginator("pagosPage", state.pagos.length, "pagos");
 }
 
 function updatePagoItems() {
@@ -925,8 +1087,10 @@ function exportCsv(tipo) {
 
 // ── Usuarios ──────────────────────────────────────────────────────────────────
 
-async function loadUsuarios(notify = true) {
-    state.usuarios = await apiFetch("/api/usuarios");
+async function loadUsuarios(notify = true, buscar = "") {
+    const url = buscar ? `/api/usuarios?buscar=${encodeURIComponent(buscar)}` : "/api/usuarios";
+    state.usuarios = await apiFetch(url);
+    pageState.usuarios = 1;
     renderUsuarios();
     if (notify) showMessage("Usuarios cargados.", "success");
 }
@@ -934,7 +1098,8 @@ async function loadUsuarios(notify = true) {
 function renderUsuarios() {
     const tbody = document.getElementById("usuariosTable");
     if (!tbody) return;
-    tbody.innerHTML = state.usuarios.map(u => `
+    const page = paginate(state.usuarios, "usuarios");
+    tbody.innerHTML = page.map(u => `
         <tr>
             <td>${u.id}</td>
             <td>${u.username}</td>
@@ -949,7 +1114,8 @@ function renderUsuarios() {
                 <button type="button" onclick="editUsuario(${u.id})">Editar</button>
                 <button type="button" class="danger-btn" onclick="deleteUsuario(${u.id})">Desactivar</button>
             </div></td>
-        </tr>`).join("");
+        </tr>`).join("") || "<tr><td colspan='10' class='muted' style='text-align:center'>Sin registros.</td></tr>";
+    renderPaginator("usuariosPage", state.usuarios.length, "usuarios");
 }
 
 async function submitUsuarioForm(event) {
@@ -1047,65 +1213,98 @@ async function loadSocioDashboard() {
     } catch (error) { handlePageError(error); }
 }
 
-async function loadSocioPuestos(notify = true) {
+async function loadSocioPuestos(notify = true, buscar = "") {
     const socio = getSocioData(); if (!socio) return;
     try {
-        const puestos = await apiFetch(`/api/puestos?socioId=${socio.id}`);
-        const tbody   = document.getElementById("socioPuestosTable");
-        if (tbody) tbody.innerHTML = puestos.map(p => `
-            <tr>
-                <td>${p.id}</td>
-                <td><strong>${p.numero}</strong></td>
-                <td>${p.categoriaNombre || "-"}</td>
-                <td>${p.descripcion || "-"}</td>
-                <td>${p.activo ? "Activo" : "Inactivo"}</td>
-            </tr>`).join("") || "<tr><td colspan='5' class='muted'>Sin puestos asignados.</td></tr>";
+        const base = `/api/puestos?socioId=${socio.id}`;
+        const url = buscar ? `${base}&buscar=${encodeURIComponent(buscar)}` : base;
+        state.socioPuestos = await apiFetch(url);
+        pageState.socioPuestos = 1;
+        renderSocioPuestos();
         if (notify) showMessage("Puestos cargados.", "success");
     } catch (error) { handlePageError(error); }
 }
 
-async function loadSocioDeudas(notify = true) {
+function renderSocioPuestos() {
+    const tbody = document.getElementById("socioPuestosTable");
+    if (!tbody) return;
+    const page = paginate(state.socioPuestos, "socioPuestos");
+    tbody.innerHTML = page.map(p => `
+        <tr>
+            <td>${p.id}</td>
+            <td><strong>${p.numero}</strong></td>
+            <td>${p.categoriaNombre || "-"}</td>
+            <td>${p.descripcion || "-"}</td>
+            <td>${p.activo ? "Activo" : "Inactivo"}</td>
+        </tr>`).join("") || "<tr><td colspan='5' class='muted' style='text-align:center'>Sin puestos asignados.</td></tr>";
+    renderPaginator("socioPuestosPage", state.socioPuestos.length, "socioPuestos");
+}
+
+async function loadSocioDeudas(notify = true, buscar = "") {
     const socio = getSocioData(); if (!socio) return;
     try {
-        const deudas = await apiFetch(`/api/deudas?socioId=${socio.id}`);
-        const tbody  = document.getElementById("socioDeudasTable");
-        if (tbody) tbody.innerHTML = deudas.map(d => `
-            <tr>
-                <td>${d.id}</td>
-                <td>${d.fecha || "-"}</td>
-                <td>${d.descripcion || "-"}</td>
-                <td>${d.estado}</td>
-                <td>${formatMoney(d.totalPendiente)}</td>
-                <td>${renderDeudaItems(d.items)}</td>
-            </tr>`).join("") || "<tr><td colspan='6' class='muted'>Sin deudas registradas.</td></tr>";
+        const base = `/api/deudas?socioId=${socio.id}`;
+        const url = buscar ? `${base}&buscar=${encodeURIComponent(buscar)}` : base;
+        state.socioDeudas = await apiFetch(url);
+        pageState.socioDeudas = 1;
+        renderSocioDeudas();
         if (notify) showMessage("Deudas cargadas.", "success");
     } catch (error) { handlePageError(error); }
 }
 
-async function loadSocioPagos(notify = true) {
+function renderSocioDeudas() {
+    const tbody = document.getElementById("socioDeudasTable");
+    if (!tbody) return;
+    const page = paginate(state.socioDeudas, "socioDeudas");
+    tbody.innerHTML = page.map(d => `
+        <tr>
+            <td>${d.id}</td>
+            <td>${d.fecha || "-"}</td>
+            <td>${d.descripcion || "-"}</td>
+            <td>${d.estado}</td>
+            <td>${formatMoney(d.totalPendiente)}</td>
+            <td>${renderDeudaItems(d.items)}</td>
+        </tr>`).join("") || "<tr><td colspan='6' class='muted' style='text-align:center'>Sin deudas registradas.</td></tr>";
+    renderPaginator("socioDeudasPage", state.socioDeudas.length, "socioDeudas");
+}
+
+async function loadSocioPagos(notify = true, buscar = "") {
     const socio = getSocioData(); if (!socio) return;
     try {
-        const pagos = await apiFetch(`/api/pagos?socioId=${socio.id}`);
-        const tbody = document.getElementById("socioPagosTable");
-        if (tbody) tbody.innerHTML = pagos.map(p => `
-            <tr>
-                <td>${p.id}</td>
-                <td>${p.fecha || "-"}</td>
-                <td>${formatMoney(p.montoTotal)}</td>
-                <td>${p.observacion || "-"}</td>
-                <td>${(p.itemsPagados || []).map(i => i.motivoCobroNombre).join(", ") || "-"}</td>
-            </tr>`).join("") || "<tr><td colspan='5' class='muted'>Sin pagos registrados.</td></tr>";
+        const base = `/api/pagos?socioId=${socio.id}`;
+        const url = buscar ? `${base}&buscar=${encodeURIComponent(buscar)}` : base;
+        state.socioPagos = await apiFetch(url);
+        pageState.socioPagos = 1;
+        renderSocioPagos();
         if (notify) showMessage("Pagos cargados.", "success");
     } catch (error) { handlePageError(error); }
 }
 
+function renderSocioPagos() {
+    const tbody = document.getElementById("socioPagosTable");
+    if (!tbody) return;
+    const page = paginate(state.socioPagos, "socioPagos");
+    tbody.innerHTML = page.map(p => `
+        <tr>
+            <td>${p.id}</td>
+            <td>${p.fecha || "-"}</td>
+            <td>${formatMoney(p.montoTotal)}</td>
+            <td>${p.observacion || "-"}</td>
+            <td>${(p.itemsPagados || []).map(i => i.motivoCobroNombre).join(", ") || "-"}</td>
+        </tr>`).join("") || "<tr><td colspan='5' class='muted' style='text-align:center'>Sin pagos registrados.</td></tr>";
+    renderPaginator("socioPagosPage", state.socioPagos.length, "socioPagos");
+}
+
 // ── Exports globales ──────────────────────────────────────────────────────────
 
-window.editSocio     = editSocio;
-window.deleteSocio   = deleteSocio;
-window.editPuesto    = editPuesto;
-window.deletePuesto  = deletePuesto;
-window.editMotivo    = editMotivo;
-window.deleteMotivo  = deleteMotivo;
-window.editUsuario   = editUsuario;
-window.deleteUsuario = deleteUsuario;
+window.editSocio          = editSocio;
+window.deleteSocio        = deleteSocio;
+window.editPuesto         = editPuesto;
+window.deletePuesto       = deletePuesto;
+window.editMotivo         = editMotivo;
+window.deleteMotivo       = deleteMotivo;
+window.editUsuario        = editUsuario;
+window.deleteUsuario      = deleteUsuario;
+window.goPage             = goPage;
+window.removeDeudaItem    = removeDeudaItem;
+window.openAddItemsModal  = openAddItemsModal;

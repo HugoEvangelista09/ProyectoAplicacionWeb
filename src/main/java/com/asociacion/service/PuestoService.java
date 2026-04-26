@@ -92,6 +92,13 @@ public class PuestoService {
         return puestoMapper.toDTO(puestoRepository.save(puesto));
     }
 
+    public List<PuestoResponseDTO> buscar(String term) {
+        return puestoRepository.buscar(term)
+                .stream()
+                .map(puestoMapper::toDTO)
+                .collect(Collectors.toList());
+    }
+
     @Transactional
     public void desactivar(Long id) {
         Puesto puesto = puestoRepository.findById(id)

@@ -33,8 +33,29 @@ public class PagoService {
     @Autowired
     private PagoMapper pagoMapper;
 
+    public List<PagoResponseDTO> listarTodos() {
+        return pagoRepository.findAll()
+                .stream()
+                .map(pagoMapper::toDTO)
+                .collect(Collectors.toList());
+    }
+
     public List<PagoResponseDTO> listarPorSocio(Long socioId) {
         return pagoRepository.findBySocioId(socioId)
+                .stream()
+                .map(pagoMapper::toDTO)
+                .collect(Collectors.toList());
+    }
+
+    public List<PagoResponseDTO> buscar(String term) {
+        return pagoRepository.buscar(term)
+                .stream()
+                .map(pagoMapper::toDTO)
+                .collect(Collectors.toList());
+    }
+
+    public List<PagoResponseDTO> buscarPorSocio(Long socioId, String term) {
+        return pagoRepository.buscarPorSocio(socioId, term)
                 .stream()
                 .map(pagoMapper::toDTO)
                 .collect(Collectors.toList());

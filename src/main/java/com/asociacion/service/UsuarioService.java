@@ -91,6 +91,13 @@ public class UsuarioService {
         usuarioRepository.save(usuario);
     }
 
+    public List<UsuarioResponseDTO> buscar(String term) {
+        return usuarioRepository.buscar(term)
+                .stream()
+                .map(usuarioMapper::toDTO)
+                .collect(Collectors.toList());
+    }
+
     public Usuario obtenerEntidad(Long id) {
         return usuarioRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado con id: " + id));

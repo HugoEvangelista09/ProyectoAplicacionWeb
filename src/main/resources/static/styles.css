@@ -708,6 +708,11 @@ pre#reportesOutput {
 }
 
 /* ── Search bar ──────────────────────────────────────────────────────────── */
+.search-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
 .search-bar input[type="search"] {
     padding: 0.5rem 0.85rem;
     border: 1.5px solid var(--border);
@@ -716,13 +721,26 @@ pre#reportesOutput {
     background: var(--surface-strong);
     color: var(--text);
     outline: none;
-    min-width: 220px;
+    min-width: 180px;
     transition: border-color var(--t), box-shadow var(--t);
 }
 .search-bar input[type="search"]:focus {
     border-color: var(--accent);
     box-shadow: 0 0 0 3px rgba(200,107,60,0.14);
 }
+.btn-buscar {
+    padding: 0.48rem 1rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background var(--t), transform var(--t);
+}
+.btn-buscar:hover { background: var(--accent-dark, #a8521e); transform: translateY(-1px); }
 
 /* ── Report output ───────────────────────────────────────────────────────── */
 .report-summary {
@@ -746,6 +764,73 @@ pre#reportesOutput {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+/* ── Section title right (paginator + search) ────────────────────────────── */
+.section-title-right {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+/* ── Paginator ───────────────────────────────────────────────────────────── */
+.paginator {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.35rem;
+    flex-wrap: wrap;
+}
+
+.paginator button {
+    padding: 0.38rem 0.82rem;
+    font-size: 0.83rem;
+    border-radius: var(--radius-sm);
+    min-width: 36px;
+    box-shadow: none;
+}
+
+.paginator button:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+    pointer-events: none;
+    transform: none !important;
+}
+
+.paginator-ellipsis {
+    color: var(--muted);
+    font-size: 0.9rem;
+    padding: 0 0.15rem;
+    user-select: none;
+}
+
+.paginator-info {
+    color: var(--muted);
+    font-size: 0.78rem;
+    margin-left: 0.5rem;
+    white-space: nowrap;
+}
+
+/* ── Items preview (deudas form) ─────────────────────────────────────────── */
+.items-preview-list { display: grid; gap: 0.5rem; }
+
+.item-preview-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.55rem 1rem;
+    background: white;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-md);
+    font-size: 0.9rem;
+}
+
+.item-preview-row .danger-btn {
+    padding: 0.25rem 0.65rem;
+    font-size: 0.8rem;
+    flex-shrink: 0;
 }
 
 /* ── Validation ──────────────────────────────────────────────────────────── */
