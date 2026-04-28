@@ -1,0 +1,20 @@
+<div class="app-shell">
+  <aside class="app-sidebar">
+    <div>
+      <p class="eyebrow">Sistema</p>
+      <h2>Asociacion APROMEC</h2>
+      <p class="muted">Usuario: {{ auth.currentUser() }}</p>
+      <p class="muted">Perfil: {{ auth.roleLabel() }}</p>
+    </div>
+
+    <nav class="nav-links">
+      <a *ngFor="let link of visibleNavigation" [routerLink]="link.path" routerLinkActive="active">{{ link.label }}</a>
+    </nav>
+
+    <button type="button" class="secondary-btn" (click)="logout()">Cerrar sesion</button>
+  </aside>
+
+  <main class="app-main">
+    <router-outlet />
+  </main>
+</div>

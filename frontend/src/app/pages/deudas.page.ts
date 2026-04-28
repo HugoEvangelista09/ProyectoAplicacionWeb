@@ -1,8 +1,9 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
 import { ApiService } from '../core/api.service';
+import { AuthService } from '../core/auth.service';
 import { Deuda, MotivoCobro, Socio } from '../shared/models';
 
 @Component({
@@ -13,19 +14,19 @@ import { Deuda, MotivoCobro, Socio } from '../shared/models';
     <header class="topbar">
       <div>
         <p class="eyebrow">Modulo</p>
-        <h1>Deudas</h1>
+        <h1>{{ isSocioView ? 'Mis deudas' : 'Deudas' }}</h1>
       </div>
       <button type="button" (click)="load()">Actualizar lista</button>
     </header>
 
     <div *ngIf="message" class="message" [class.success]="messageType === 'success'" [class.error]="messageType === 'error'">{{ message }}</div>
 
-    <section class="card">
+    <section *ngIf="canRegisterDeudas" class="card">
       <form class="form-grid" (ngSubmit)="save()">
         <label>
           Socio
-          <select [(ngModel)]="form.socioId" name="socioId" required>
-            <option [ngValue]="null">Seleccione</option>
+          <select [(ngModel)]="form.socioId" (ngModelChange)="onSocioChange($event)" name="socioId" [disabled]="loading" required>
+            <option [ngValue]="null">{{ loading ? 'Cargando socios...' : 'Seleccione' }}</option>
             <option *ngFor="let socio of sociosActivos" [ngValue]="socio.id">{{ fullName(socio) }}</option>
           </select>
         </label>
@@ -33,20 +34,28 @@ import { Deuda, MotivoCobro, Socio } from '../shared/models';
         <label class="full-width">Descripcion<input [(ngModel)]="form.descripcion" name="descripcion" placeholder="Ej. cuota mensual de abril" /></label>
         <label>
           Motivo
-          <select [(ngModel)]="form.motivoCobroId" name="motivoCobroId" required>
-            <option [ngValue]="null">Seleccione</option>
+          <select [(ngModel)]="form.motivoCobroId" (ngModelChange)="onMotivoChange($event)" name="motivoCobroId" [disabled]="loading" required>
+            <option [ngValue]="null">{{ loading ? 'Cargando motivos...' : 'Seleccione' }}</option>
             <option *ngFor="let motivo of motivosActivos" [ngValue]="motivo.id">{{ motivo.nombre }}</option>
           </select>
         </label>
         <label>Monto<input [(ngModel)]="form.monto" name="monto" min="0.01" step="0.01" type="number" required /></label>
         <label class="full-width">Observacion<input [(ngModel)]="form.observacion" name="observacion" /></label>
-        <div class="actions">
-          <button type="submit">Registrar deuda</button>
+        <div class="actions full-width">
+          <button type="submit" [disabled]="loading">Registrar deuda</button>
         </div>
       </form>
     </section>
 
     <section class="card">
+      <div class="list-toolbar">
+        <input [(ngModel)]="searchTerm" (ngModelChange)="page = 1" name="searchDeudas" placeholder="Buscar por socio, fecha, descripcion o estado" />
+        <div class="pagination">
+          <span>Pagina {{ page }} de {{ totalPages }}</span>
+          <button type="button" class="secondary-btn" (click)="prevPage()" [disabled]="page === 1">Anterior</button>
+          <button type="button" class="secondary-btn" (click)="nextPage()" [disabled]="page === totalPages">Siguiente</button>
+        </div>
+      </div>
       <div class="table-wrap">
         <table>
           <thead>
@@ -57,23 +66,28 @@ import { Deuda, MotivoCobro, Socio } from '../shared/models';
               <th>Descripcion</th>
               <th>Estado</th>
               <th>Total pendiente</th>
+              <th>Observaciones</th>
               <th>Detalle</th>
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let deuda of deudas">
+            <tr *ngFor="let deuda of visibleDeudas">
               <td>{{ deuda.id }}</td>
               <td>{{ deuda.socioNombre || deuda.socioId }}</td>
               <td>{{ deuda.fecha || '-' }}</td>
               <td>{{ deuda.descripcion || '-' }}</td>
               <td>{{ deuda.estado }}</td>
               <td>{{ money(deuda.totalPendiente) }}</td>
+              <td>{{ observaciones(deuda) }}</td>
               <td>
                 <div *ngFor="let item of deuda.items">
                   <strong>{{ item.motivoCobroNombre }}</strong> - {{ money(item.monto) }} - {{ item.estado }}
                 </div>
                 <span *ngIf="!deuda.items.length" class="muted">Sin items</span>
               </td>
+            </tr>
+            <tr *ngIf="!visibleDeudas.length">
+              <td colspan="8" class="muted">{{ loading ? 'Cargando deudas...' : 'No hay deudas para mostrar.' }}</td>
             </tr>
           </tbody>
         </table>
@@ -86,10 +100,26 @@ export class DeudasPageComponent implements OnInit {
   motivos: MotivoCobro[] = [];
   deudas: Deuda[] = [];
   form = this.emptyForm();
+  searchTerm = '';
+  page = 1;
+  readonly pageSize = 6;
+  loading = false;
   message = '';
   messageType: 'success' | 'error' = 'success';
 
-  constructor(private readonly api: ApiService) {}
+  constructor(
+    private readonly api: ApiService,
+    public readonly auth: AuthService,
+    private readonly cdr: ChangeDetectorRef
+  ) {}
+
+  get isSocioView(): boolean {
+    return this.auth.isSocio();
+  }
+
+  get canRegisterDeudas(): boolean {
+    return !this.isSocioView;
+  }
 
   get sociosActivos(): Socio[] {
     return this.socios.filter((item) => item.activo);
@@ -99,27 +129,67 @@ export class DeudasPageComponent implements OnInit {
     return this.motivos.filter((item) => item.activo);
   }
 
+  get filteredDeudas(): Deuda[] {
+    const term = this.searchTerm.trim().toLowerCase();
+    if (!term) return this.deudas;
+
+    return this.deudas.filter((deuda) =>
+      `${deuda.socioNombre ?? deuda.socioId} ${deuda.fecha ?? ''} ${deuda.descripcion ?? ''} ${deuda.estado} ${
+        (deuda.items || []).map((item) => item.motivoCobroNombre).join(' ')
+      }`
+        .toLowerCase()
+        .includes(term)
+    );
+  }
+
+  get visibleDeudas(): Deuda[] {
+    const start = (this.page - 1) * this.pageSize;
+    return this.filteredDeudas.slice(start, start + this.pageSize);
+  }
+
+  get totalPages(): number {
+    return Math.max(1, Math.ceil(this.filteredDeudas.length / this.pageSize));
+  }
+
   ngOnInit(): void {
     this.load();
   }
 
   async load(): Promise<void> {
+    this.loading = true;
     try {
-      const [socios, motivos, deudas] = await Promise.all([
-        firstValueFrom(this.api.listarSocios()),
-        firstValueFrom(this.api.listarMotivos()),
-        firstValueFrom(this.api.listarDeudas())
-      ]);
-      this.socios = socios;
-      this.motivos = motivos;
-      this.deudas = deudas;
-      this.flash('Deudas cargadas.', 'success');
+      if (this.isSocioView) {
+        const socioId = this.auth.currentSocioId();
+        this.socios = [];
+        this.motivos = [];
+        this.deudas = await firstValueFrom(this.api.listarDeudas(socioId));
+      } else {
+        const [socios, motivos, deudas] = await Promise.all([
+          firstValueFrom(this.api.listarSocios()),
+          firstValueFrom(this.api.listarMotivos()),
+          firstValueFrom(this.api.listarDeudas())
+        ]);
+        this.socios = socios;
+        this.motivos = motivos;
+        this.deudas = deudas;
+      }
+      this.page = 1;
+      this.flash(this.isSocioView ? 'Tus deudas fueron cargadas.' : 'Deudas cargadas.', 'success');
+      this.cdr.detectChanges();
     } catch (error) {
       this.flash(this.errorMessage(error), 'error');
+    } finally {
+      this.loading = false;
+      this.cdr.detectChanges();
     }
   }
 
   async save(): Promise<void> {
+    if (!this.canRegisterDeudas) {
+      this.flash('Este perfil solo puede consultar deudas.', 'error');
+      return;
+    }
+
     try {
       await firstValueFrom(this.api.crearDeuda({
         socioId: Number(this.form.socioId),
@@ -146,8 +216,33 @@ export class DeudasPageComponent implements OnInit {
     return new Intl.NumberFormat('es-PE', { style: 'currency', currency: 'PEN' }).format(Number(value || 0));
   }
 
+  observaciones(deuda: Deuda): string {
+    const values = (deuda.items || [])
+      .map((item) => item.observacion?.trim())
+      .filter((item): item is string => !!item);
+    return values.length ? values.join(' | ') : '-';
+  }
+
   fullName(socio: Socio): string {
     return `${socio.nombre} ${socio.apellido}`.trim();
+  }
+
+  onSocioChange(value: number | null): void {
+    this.form.socioId = value;
+    this.cdr.detectChanges();
+  }
+
+  onMotivoChange(value: number | null): void {
+    this.form.motivoCobroId = value;
+    this.cdr.detectChanges();
+  }
+
+  prevPage(): void {
+    this.page = Math.max(1, this.page - 1);
+  }
+
+  nextPage(): void {
+    this.page = Math.min(this.totalPages, this.page + 1);
   }
 
   private emptyForm() {

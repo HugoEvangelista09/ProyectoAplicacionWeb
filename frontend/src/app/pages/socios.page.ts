@@ -34,7 +34,7 @@ import { Socio } from '../shared/models';
         <label>DNI<input [(ngModel)]="form.dni" name="dni" required /></label>
         <label>Telefono<input [(ngModel)]="form.telefono" name="telefono" /></label>
         <label>Email<input [(ngModel)]="form.email" name="email" type="email" /></label>
-        <div class="actions">
+        <div class="actions full-width">
           <button type="submit">{{ form.id ? 'Actualizar socio' : 'Guardar socio' }}</button>
           <button type="button" class="secondary-btn" (click)="reset()">Limpiar</button>
         </div>
@@ -42,6 +42,14 @@ import { Socio } from '../shared/models';
     </section>
 
     <section class="card">
+      <div class="list-toolbar">
+        <input [(ngModel)]="searchTerm" (ngModelChange)="page = 1" name="searchSocios" placeholder="Buscar por nombre, DNI, telefono o email" />
+        <div class="pagination">
+          <span>Pagina {{ page }} de {{ totalPages }}</span>
+          <button type="button" class="secondary-btn" (click)="prevPage()" [disabled]="page === 1">Anterior</button>
+          <button type="button" class="secondary-btn" (click)="nextPage()" [disabled]="page === totalPages">Siguiente</button>
+        </div>
+      </div>
       <div class="table-wrap">
         <table>
           <thead>
@@ -56,7 +64,7 @@ import { Socio } from '../shared/models';
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let socio of socios">
+            <tr *ngFor="let socio of visibleSocios">
               <td>{{ socio.id }}</td>
               <td>{{ fullName(socio) }}</td>
               <td>{{ socio.dni }}</td>
@@ -70,6 +78,9 @@ import { Socio } from '../shared/models';
                 </div>
               </td>
             </tr>
+            <tr *ngIf="!visibleSocios.length">
+              <td colspan="7" class="muted">No hay socios para mostrar.</td>
+            </tr>
           </tbody>
         </table>
       </div>
@@ -79,6 +90,9 @@ import { Socio } from '../shared/models';
 export class SociosPageComponent implements OnInit {
   socios: Socio[] = [];
   form: Partial<Socio> = this.emptyForm();
+  searchTerm = '';
+  page = 1;
+  readonly pageSize = 6;
   message = '';
   messageType: 'success' | 'error' = 'success';
 
@@ -88,9 +102,30 @@ export class SociosPageComponent implements OnInit {
     this.load();
   }
 
+  get filteredSocios(): Socio[] {
+    const term = this.searchTerm.trim().toLowerCase();
+    if (!term) return this.socios;
+
+    return this.socios.filter((socio) =>
+      `${socio.nombre} ${socio.apellido} ${socio.dni} ${socio.telefono ?? ''} ${socio.email ?? ''}`
+        .toLowerCase()
+        .includes(term)
+    );
+  }
+
+  get visibleSocios(): Socio[] {
+    const start = (this.page - 1) * this.pageSize;
+    return this.filteredSocios.slice(start, start + this.pageSize);
+  }
+
+  get totalPages(): number {
+    return Math.max(1, Math.ceil(this.filteredSocios.length / this.pageSize));
+  }
+
   async load(): Promise<void> {
     try {
       this.socios = await firstValueFrom(this.api.listarSocios());
+      this.page = 1;
       this.flash('Socios cargados.', 'success');
     } catch (error) {
       this.flash(this.errorMessage(error), 'error');
@@ -130,6 +165,14 @@ export class SociosPageComponent implements OnInit {
 
   fullName(socio: Socio): string {
     return `${socio.nombre} ${socio.apellido}`.trim();
+  }
+
+  prevPage(): void {
+    this.page = Math.max(1, this.page - 1);
+  }
+
+  nextPage(): void {
+    this.page = Math.min(this.totalPages, this.page + 1);
   }
 
   private emptyForm(): Partial<Socio> {

@@ -47,7 +47,7 @@ import { Usuario, UsuarioForm } from '../shared/models';
             <option [ngValue]="2">Operador</option>
           </select>
         </label>
-        <div class="actions">
+        <div class="actions full-width">
           <button type="submit">{{ form.id ? 'Actualizar usuario' : 'Guardar usuario' }}</button>
           <button type="button" class="secondary-btn" (click)="reset()">Limpiar</button>
         </div>
@@ -55,6 +55,14 @@ import { Usuario, UsuarioForm } from '../shared/models';
     </section>
 
     <section class="card">
+      <div class="list-toolbar">
+        <input [(ngModel)]="searchTerm" (ngModelChange)="page = 1" name="searchUsuarios" placeholder="Buscar por username, nombre, DNI, RUC o email" />
+        <div class="pagination">
+          <span>Pagina {{ page }} de {{ totalPages }}</span>
+          <button type="button" class="secondary-btn" (click)="prevPage()" [disabled]="page === 1">Anterior</button>
+          <button type="button" class="secondary-btn" (click)="nextPage()" [disabled]="page === totalPages">Siguiente</button>
+        </div>
+      </div>
       <div class="table-wrap">
         <table>
           <thead>
@@ -72,7 +80,7 @@ import { Usuario, UsuarioForm } from '../shared/models';
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let usuario of usuarios">
+            <tr *ngFor="let usuario of visibleUsuarios">
               <td>{{ usuario.id }}</td>
               <td>{{ usuario.username }}</td>
               <td>{{ usuario.nombreCompleto }}</td>
@@ -89,6 +97,9 @@ import { Usuario, UsuarioForm } from '../shared/models';
                 </div>
               </td>
             </tr>
+            <tr *ngIf="!visibleUsuarios.length">
+              <td colspan="10" class="muted">No hay usuarios para mostrar.</td>
+            </tr>
           </tbody>
         </table>
       </div>
@@ -98,6 +109,9 @@ import { Usuario, UsuarioForm } from '../shared/models';
 export class UsuariosPageComponent implements OnInit {
   usuarios: Usuario[] = [];
   form: UsuarioForm = this.emptyForm();
+  searchTerm = '';
+  page = 1;
+  readonly pageSize = 6;
   message = '';
   messageType: 'success' | 'error' = 'success';
 
@@ -107,9 +121,30 @@ export class UsuariosPageComponent implements OnInit {
     this.load();
   }
 
+  get filteredUsuarios(): Usuario[] {
+    const term = this.searchTerm.trim().toLowerCase();
+    if (!term) return this.usuarios;
+
+    return this.usuarios.filter((usuario) =>
+      `${usuario.username} ${usuario.nombreCompleto} ${usuario.dni} ${usuario.ruc} ${usuario.email ?? ''} ${usuario.telefono ?? ''}`
+        .toLowerCase()
+        .includes(term)
+    );
+  }
+
+  get visibleUsuarios(): Usuario[] {
+    const start = (this.page - 1) * this.pageSize;
+    return this.filteredUsuarios.slice(start, start + this.pageSize);
+  }
+
+  get totalPages(): number {
+    return Math.max(1, Math.ceil(this.filteredUsuarios.length / this.pageSize));
+  }
+
   async load(): Promise<void> {
     try {
       this.usuarios = await firstValueFrom(this.api.listarUsuarios());
+      this.page = 1;
       this.flash('Usuarios cargados.', 'success');
     } catch (error) {
       this.flash(this.errorMessage(error), 'error');
@@ -160,6 +195,14 @@ export class UsuariosPageComponent implements OnInit {
 
   rolLabel(rol: number): string {
     return rol === 1 ? 'Administrador' : 'Operador';
+  }
+
+  prevPage(): void {
+    this.page = Math.max(1, this.page - 1);
+  }
+
+  nextPage(): void {
+    this.page = Math.min(this.totalPages, this.page + 1);
   }
 
   private emptyForm(): UsuarioForm {

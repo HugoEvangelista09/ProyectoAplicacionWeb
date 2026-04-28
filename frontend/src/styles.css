@@ -32,6 +32,7 @@ body {
 
 body {
   margin: 0;
+  overflow-x: hidden;
 }
 
 button,
@@ -186,6 +187,7 @@ th {
   min-height: 100vh;
   display: grid;
   grid-template-columns: 280px 1fr;
+  width: 100%;
 }
 
 .app-sidebar {
@@ -197,6 +199,7 @@ th {
   display: grid;
   gap: 1.25rem;
   align-content: start;
+  min-width: 0;
 }
 
 .app-sidebar .eyebrow {
@@ -230,6 +233,8 @@ th {
   padding: 1.5rem;
   display: grid;
   gap: 1.25rem;
+  min-width: 0;
+  overflow-x: hidden;
 }
 
 .topbar,
@@ -239,6 +244,7 @@ th {
   justify-content: space-between;
   align-items: center;
   gap: 1rem;
+  flex-wrap: wrap;
 }
 
 .hero-banner,
@@ -267,6 +273,10 @@ th {
   gap: 0.75rem;
 }
 
+.actions {
+  align-items: center;
+}
+
 .stats-grid,
 .content-grid,
 .reports-grid,
@@ -280,12 +290,51 @@ th {
 }
 
 .content-grid {
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
 }
 
 .reports-grid,
 .form-grid {
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.form-grid > label,
+.form-grid > .actions {
+  display: grid;
+  align-content: start;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.form-grid > .actions {
+  align-self: end;
+  justify-content: start;
+}
+
+.list-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.list-toolbar input {
+  flex: 1 1 320px;
+  margin-top: 0;
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.pagination span {
+  color: var(--muted);
+  font-size: 0.92rem;
 }
 
 .stat-card {
@@ -316,6 +365,7 @@ th {
 
 .table-wrap {
   overflow-x: auto;
+  max-width: 100%;
 }
 
 .danger-btn {
@@ -385,9 +435,14 @@ th {
 
   .topbar,
   .hero-banner,
-  .actions {
+  .actions,
+  .section-title {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .pagination {
+    justify-content: flex-start;
   }
 }
 

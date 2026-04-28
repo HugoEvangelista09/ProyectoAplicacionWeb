@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { Deuda, MotivoCobro, Pago, Puesto, Socio, Usuario, UsuarioForm } from '../shared/models';
@@ -25,7 +25,7 @@ export class ApiService {
     return this.http.get<Puesto[]>('/api/puestos');
   }
 
-  guardarPuesto(payload: { numero: string; descripcion?: string; socioId?: number | null }, id?: number | null): Observable<Puesto> {
+  guardarPuesto(payload: { categoria: number; descripcion?: string; socioId?: number | null }, id?: number | null): Observable<Puesto> {
     return id
       ? this.http.put<Puesto>(`/api/puestos/${id}`, payload)
       : this.http.post<Puesto>('/api/puestos', payload);
@@ -49,16 +49,18 @@ export class ApiService {
     return this.http.delete<void>(`/api/motivos-cobro/${id}`);
   }
 
-  listarDeudas(): Observable<Deuda[]> {
-    return this.http.get<Deuda[]>('/api/deudas');
+  listarDeudas(socioId?: number | null): Observable<Deuda[]> {
+    const params = typeof socioId === 'number' ? new HttpParams().set('socioId', socioId) : undefined;
+    return this.http.get<Deuda[]>('/api/deudas', { params });
   }
 
   crearDeuda(payload: unknown): Observable<Deuda> {
     return this.http.post<Deuda>('/api/deudas', payload);
   }
 
-  listarPagos(): Observable<Pago[]> {
-    return this.http.get<Pago[]>('/api/pagos');
+  listarPagos(socioId?: number | null): Observable<Pago[]> {
+    const params = typeof socioId === 'number' ? new HttpParams().set('socioId', socioId) : undefined;
+    return this.http.get<Pago[]>('/api/pagos', { params });
   }
 
   crearPago(payload: unknown): Observable<Pago> {

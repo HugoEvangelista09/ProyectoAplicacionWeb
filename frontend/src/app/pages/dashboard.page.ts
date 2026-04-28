@@ -1,5 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
+import { ChangeDetectorRef } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { ApiService } from '../core/api.service';
@@ -9,118 +11,8 @@ import { Deuda, MotivoCobro, Pago, Puesto, Socio } from '../shared/models';
   selector: 'app-dashboard-page',
   standalone: true,
   imports: [CommonModule, RouterLink],
-  template: `
-    <header class="topbar">
-      <div>
-        <p class="eyebrow">Vista general</p>
-        <h1>Panel principal</h1>
-      </div>
-      <button type="button" (click)="load()">Actualizar resumen</button>
-    </header>
-
-    <div *ngIf="message" class="message" [class.success]="messageType === 'success'" [class.error]="messageType === 'error'">
-      {{ message }}
-    </div>
-
-    <section class="hero-banner">
-      <div>
-        <p class="eyebrow">Hoy</p>
-        <h2>Control rapido del sistema</h2>
-        <p>Revisa el estado general y entra a cada modulo desde Angular.</p>
-      </div>
-      <div class="hero-actions">
-        <a class="button-link" routerLink="/socios">Registrar socio</a>
-        <a class="button-link secondary-btn" routerLink="/pagos">Registrar pago</a>
-      </div>
-    </section>
-
-    <section class="stats-grid">
-      <article class="stat-card">
-        <span>Socios</span>
-        <strong>{{ socios.length }}</strong>
-      </article>
-      <article class="stat-card">
-        <span>Puestos</span>
-        <strong>{{ puestos.length }}</strong>
-      </article>
-      <article class="stat-card">
-        <span>Motivos activos</span>
-        <strong>{{ motivosActivos }}</strong>
-      </article>
-      <article class="stat-card">
-        <span>Deudas pendientes</span>
-        <strong>{{ deudasPendientes }}</strong>
-      </article>
-    </section>
-
-    <section class="content-grid">
-      <article class="card">
-        <div class="section-title">
-          <div>
-            <p class="eyebrow">Actividad</p>
-            <h2>Ultimos pagos</h2>
-          </div>
-          <a class="button-link secondary-btn" routerLink="/pagos">Ver modulo</a>
-        </div>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Socio</th>
-                <th>Fecha</th>
-                <th>Monto</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let pago of pagosRecientes">
-                <td>{{ pago.id }}</td>
-                <td>{{ pago.socioNombre || pago.socioId }}</td>
-                <td>{{ pago.fecha || '-' }}</td>
-                <td>{{ money(pago.montoTotal) }}</td>
-              </tr>
-              <tr *ngIf="!pagosRecientes.length">
-                <td colspan="4" class="muted">No hay pagos registrados.</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </article>
-
-      <article class="card">
-        <div class="section-title">
-          <div>
-            <p class="eyebrow">Pendientes</p>
-            <h2>Deudas recientes</h2>
-          </div>
-          <a class="button-link secondary-btn" routerLink="/deudas">Ver modulo</a>
-        </div>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Socio</th>
-                <th>Estado</th>
-                <th>Total</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let deuda of deudasRecientes">
-                <td>{{ deuda.id }}</td>
-                <td>{{ deuda.socioNombre || deuda.socioId }}</td>
-                <td>{{ deuda.estado }}</td>
-                <td>{{ money(deuda.totalPendiente) }}</td>
-              </tr>
-              <tr *ngIf="!deudasRecientes.length">
-                <td colspan="4" class="muted">No hay deudas registradas.</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </article>
-    </section>
-  `
+  templateUrl: './dashboard.page.html',
+  styleUrl: './dashboard.page.css'
 })
 export class DashboardPageComponent implements OnInit {
   socios: Socio[] = [];
@@ -131,7 +23,10 @@ export class DashboardPageComponent implements OnInit {
   message = '';
   messageType: 'success' | 'error' = 'success';
 
-  constructor(private readonly api: ApiService) {}
+  constructor(
+    private readonly api: ApiService,
+    private readonly cdr: ChangeDetectorRef
+  ) {}
 
   get motivosActivos(): number {
     return this.motivos.filter((item) => item.activo).length;
@@ -154,24 +49,31 @@ export class DashboardPageComponent implements OnInit {
   }
 
   async load(): Promise<void> {
-    try {
-      const [socios, puestos, motivos, deudas, pagos] = await Promise.all([
-        firstValueFrom(this.api.listarSocios()),
-        firstValueFrom(this.api.listarPuestos()),
-        firstValueFrom(this.api.listarMotivos()),
-        firstValueFrom(this.api.listarDeudas()),
-        firstValueFrom(this.api.listarPagos())
-      ]);
+    const results = await Promise.allSettled([
+      firstValueFrom(this.api.listarSocios()),
+      firstValueFrom(this.api.listarPuestos()),
+      firstValueFrom(this.api.listarMotivos()),
+      firstValueFrom(this.api.listarDeudas()),
+      firstValueFrom(this.api.listarPagos())
+    ]);
 
-      this.socios = socios;
-      this.puestos = puestos;
-      this.motivos = motivos;
-      this.deudas = deudas;
-      this.pagos = pagos;
-      this.flash('Resumen actualizado.', 'success');
-    } catch (error) {
-      this.flash(this.errorMessage(error), 'error');
+    this.socios = this.fulfilledValue(results[0]);
+    this.puestos = this.fulfilledValue(results[1]);
+    this.motivos = this.fulfilledValue(results[2]);
+    this.deudas = this.fulfilledValue(results[3]);
+    this.pagos = this.fulfilledValue(results[4]);
+    this.cdr.detectChanges();
+
+    const rejected = results.filter((result) => result.status === 'rejected');
+    if (rejected.length) {
+      const firstError = rejected[0] as PromiseRejectedResult;
+      this.flash(`Se cargaron datos parciales. ${this.errorMessage(firstError.reason)}`, 'error');
+      this.cdr.detectChanges();
+      return;
     }
+
+    this.flash('Resumen actualizado.', 'success');
+    this.cdr.detectChanges();
   }
 
   money(value: number): string {
@@ -183,7 +85,14 @@ export class DashboardPageComponent implements OnInit {
     this.messageType = type;
   }
 
+  private fulfilledValue<T>(result: PromiseSettledResult<T>): T | [] {
+    return result.status === 'fulfilled' ? result.value : [];
+  }
+
   private errorMessage(error: unknown): string {
+    if (error instanceof HttpErrorResponse) {
+      return error.error?.message || error.message || 'No se pudo cargar el dashboard.';
+    }
     return error instanceof Error ? error.message : 'No se pudo cargar el dashboard.';
   }
 }
