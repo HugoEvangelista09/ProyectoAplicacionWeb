@@ -24,7 +24,7 @@ import { MotivoCobro } from '../shared/models';
       <form class="form-grid" (ngSubmit)="save()">
         <label>Nombre<input [(ngModel)]="form.nombre" name="nombre" required /></label>
         <label class="full-width">Descripcion<input [(ngModel)]="form.descripcion" name="descripcion" /></label>
-        <div class="actions">
+        <div class="actions full-width">
           <button type="submit">{{ form.id ? 'Actualizar motivo' : 'Guardar motivo' }}</button>
           <button type="button" class="secondary-btn" (click)="reset()">Limpiar</button>
         </div>
@@ -32,6 +32,14 @@ import { MotivoCobro } from '../shared/models';
     </section>
 
     <section class="card">
+      <div class="list-toolbar">
+        <input [(ngModel)]="searchTerm" (ngModelChange)="page = 1" name="searchMotivos" placeholder="Buscar por nombre o descripcion" />
+        <div class="pagination">
+          <span>Pagina {{ page }} de {{ totalPages }}</span>
+          <button type="button" class="secondary-btn" (click)="prevPage()" [disabled]="page === 1">Anterior</button>
+          <button type="button" class="secondary-btn" (click)="nextPage()" [disabled]="page === totalPages">Siguiente</button>
+        </div>
+      </div>
       <div class="table-wrap">
         <table>
           <thead>
@@ -44,7 +52,7 @@ import { MotivoCobro } from '../shared/models';
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let motivo of motivos">
+            <tr *ngFor="let motivo of visibleMotivos">
               <td>{{ motivo.id }}</td>
               <td>{{ motivo.nombre }}</td>
               <td>{{ motivo.descripcion || '-' }}</td>
@@ -56,6 +64,9 @@ import { MotivoCobro } from '../shared/models';
                 </div>
               </td>
             </tr>
+            <tr *ngIf="!visibleMotivos.length">
+              <td colspan="5" class="muted">No hay motivos para mostrar.</td>
+            </tr>
           </tbody>
         </table>
       </div>
@@ -65,6 +76,9 @@ import { MotivoCobro } from '../shared/models';
 export class MotivosPageComponent implements OnInit {
   motivos: MotivoCobro[] = [];
   form: { id?: number; nombre: string; descripcion: string } = this.emptyForm();
+  searchTerm = '';
+  page = 1;
+  readonly pageSize = 6;
   message = '';
   messageType: 'success' | 'error' = 'success';
 
@@ -74,9 +88,28 @@ export class MotivosPageComponent implements OnInit {
     this.load();
   }
 
+  get filteredMotivos(): MotivoCobro[] {
+    const term = this.searchTerm.trim().toLowerCase();
+    if (!term) return this.motivos;
+
+    return this.motivos.filter((motivo) =>
+      `${motivo.nombre} ${motivo.descripcion ?? ''}`.toLowerCase().includes(term)
+    );
+  }
+
+  get visibleMotivos(): MotivoCobro[] {
+    const start = (this.page - 1) * this.pageSize;
+    return this.filteredMotivos.slice(start, start + this.pageSize);
+  }
+
+  get totalPages(): number {
+    return Math.max(1, Math.ceil(this.filteredMotivos.length / this.pageSize));
+  }
+
   async load(): Promise<void> {
     try {
       this.motivos = await firstValueFrom(this.api.listarMotivos());
+      this.page = 1;
       this.flash('Motivos cargados.', 'success');
     } catch (error) {
       this.flash(this.errorMessage(error), 'error');
@@ -116,6 +149,14 @@ export class MotivosPageComponent implements OnInit {
 
   reset(): void {
     this.form = this.emptyForm();
+  }
+
+  prevPage(): void {
+    this.page = Math.max(1, this.page - 1);
+  }
+
+  nextPage(): void {
+    this.page = Math.min(this.totalPages, this.page + 1);
   }
 
   private emptyForm(): { id?: number; nombre: string; descripcion: string } {

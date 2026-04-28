@@ -11,6 +11,8 @@ export interface Socio {
 export interface Puesto {
   id: number;
   numero: string;
+  categoria?: number;
+  categoriaNombre?: string;
   descripcion?: string;
   activo: boolean;
   socioId?: number | null;

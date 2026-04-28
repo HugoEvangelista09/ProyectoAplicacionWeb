@@ -38,11 +38,9 @@ public class DataInitializer implements ApplicationRunner {
         // Skip if already seeded
         if (socioRepository.count() > 0) return;
 
-        // 3 operadores (rol=2)
+        // 1 operador (rol=2)
         String[][] ops = {
             {"operador1","oper1234","Carlos Torres Rios","11111111","20111111111","operador1@apromec.pe"},
-            {"operador2","oper1234","Maria Lopez Vega","22222222","20222222222","operador2@apromec.pe"},
-            {"operador3","oper1234","Jose Huanca Quispe","33333333","20333333333","operador3@apromec.pe"},
         };
         for (String[] op : ops) {
             usuarioRepository.save(Usuario.builder()
@@ -50,18 +48,10 @@ public class DataInitializer implements ApplicationRunner {
                 .dni(op[3]).ruc(op[4]).email(op[5]).rol(2).activo(true).flg(true).build());
         }
 
-        // 10 socios con username/password
+        // 2 socios con username/password
         String[][] sd = {
-            {"Ana",     "Flores",    "44444441", "ana.flores",      "socio123", "987001001"},
-            {"Luis",    "Ramirez",   "44444442", "luis.ramirez",    "socio123", "987001002"},
-            {"Carmen",  "Mamani",    "44444443", "carmen.mamani",   "socio123", "987001003"},
-            {"Pedro",   "Gutierrez", "44444444", "pedro.gutierrez", "socio123", "987001004"},
-            {"Rosa",    "Condori",   "44444445", "rosa.condori",    "socio123", "987001005"},
-            {"Juan",    "Ccama",     "44444446", "juan.ccama",      "socio123", "987001006"},
-            {"Elena",   "Vargas",    "44444447", "elena.vargas",    "socio123", "987001007"},
-            {"Miguel",  "Quispe",    "44444448", "miguel.quispe",   "socio123", "987001008"},
-            {"Lucia",   "Puma",      "44444449", "lucia.puma",      "socio123", "987001009"},
-            {"Roberto", "Apaza",     "44444450", "roberto.apaza",   "socio123", "987001010"},
+            {"Ana",     "Flores",    "44444441", "ana.flores",   "socio123", "987001001"},
+            {"Luis",    "Ramirez",   "44444442", "luis.ramirez", "socio123", "987001002"},
         };
         List<Socio> socios = new ArrayList<>();
         for (String[] s : sd) {
@@ -153,6 +143,6 @@ public class DataInitializer implements ApplicationRunner {
             }
         }
 
-        System.out.println(">>> Datos de prueba creados: 3 operadores, 10 socios, 50 puestos, 10 motivos, 150 deudas pendientes, 500 deudas pagadas, 200 pagos.");
+        System.out.println(">>> Datos de prueba creados: 1 admin, 1 operador, 2 socios, 50 puestos, 10 motivos y datos de deudas/pagos.");
     }
 }
